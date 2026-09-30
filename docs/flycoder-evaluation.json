@@ -1,0 +1,282 @@
+{
+  "date": "2026-09-19T12:54:26.938Z",
+  "training": {
+    "at": "2026-09-19T12:48:44.665Z",
+    "split": "training",
+    "model": "flycoder0.1beta",
+    "results": [
+      {
+        "task": "js-sum",
+        "language": "JavaScript",
+        "runId": "2026-09-19T12-46-58-333Z-dd9274",
+        "status": "passed",
+        "reward": 1,
+        "strategy": "inspect",
+        "durationMs": 27398,
+        "metrics": [
+          {
+            "durationMs": 8844,
+            "promptTokens": 1304,
+            "outputTokens": 27
+          },
+          {
+            "durationMs": 3544,
+            "promptTokens": 1352,
+            "outputTokens": 79
+          },
+          {
+            "durationMs": 7303,
+            "promptTokens": 1524,
+            "outputTokens": 166
+          },
+          {
+            "durationMs": 2205,
+            "promptTokens": 1712,
+            "outputTokens": 36
+          },
+          {
+            "durationMs": 5266,
+            "promptTokens": 1873,
+            "outputTokens": 113
+          }
+        ]
+      },
+      {
+        "task": "py-unique",
+        "language": "Python",
+        "runId": "2026-09-19T12-47-25-739Z-ec584e",
+        "status": "passed",
+        "reward": 1,
+        "strategy": "test_first",
+        "durationMs": 24245,
+        "metrics": [
+          {
+            "durationMs": 5696,
+            "promptTokens": 1480,
+            "outputTokens": 28
+          },
+          {
+            "durationMs": 1432,
+            "promptTokens": 1527,
+            "outputTokens": 26
+          },
+          {
+            "durationMs": 2215,
+            "promptTokens": 1574,
+            "outputTokens": 46
+          },
+          {
+            "durationMs": 7893,
+            "promptTokens": 1900,
+            "outputTokens": 168
+          },
+          {
+            "durationMs": 1814,
+            "promptTokens": 2090,
+            "outputTokens": 26
+          },
+          {
+            "durationMs": 4922,
+            "promptTokens": 2296,
+            "outputTokens": 101
+          }
+        ]
+      },
+      {
+        "task": "js-clamp",
+        "language": "JavaScript",
+        "runId": "2026-09-19T12-47-49-992Z-e202e2",
+        "status": "passed",
+        "reward": 1,
+        "strategy": "direct",
+        "durationMs": 31615,
+        "metrics": [
+          {
+            "durationMs": 4637,
+            "promptTokens": 1525,
+            "outputTokens": 55
+          },
+          {
+            "durationMs": 11264,
+            "promptTokens": 1715,
+            "outputTokens": 268
+          },
+          {
+            "durationMs": 2058,
+            "promptTokens": 2006,
+            "outputTokens": 26
+          },
+          {
+            "durationMs": 8372,
+            "promptTokens": 2620,
+            "outputTokens": 174
+          },
+          {
+            "durationMs": 1805,
+            "promptTokens": 2817,
+            "outputTokens": 26
+          },
+          {
+            "durationMs": 3141,
+            "promptTokens": 2969,
+            "outputTokens": 63
+          }
+        ]
+      },
+      {
+        "task": "py-palindrome",
+        "language": "Python",
+        "runId": "2026-09-19T12-48-21-614Z-a4fb3a",
+        "status": "passed",
+        "reward": 1,
+        "strategy": "inspect",
+        "durationMs": 23046,
+        "metrics": [
+          {
+            "durationMs": 6411,
+            "promptTokens": 1503,
+            "outputTokens": 53
+          },
+          {
+            "durationMs": 6324,
+            "promptTokens": 1640,
+            "outputTokens": 154
+          },
+          {
+            "durationMs": 2192,
+            "promptTokens": 1816,
+            "outputTokens": 40
+          },
+          {
+            "durationMs": 1351,
+            "promptTokens": 1875,
+            "outputTokens": 26
+          },
+          {
+            "durationMs": 6607,
+            "promptTokens": 2079,
+            "outputTokens": 158
+          }
+        ]
+      }
+    ],
+    "passed": 4,
+    "total": 4,
+    "scope": "Small curriculum; no SWE benchmark or speedup claim. Only controller weights train, not Qwen."
+  },
+  "evaluation": {
+    "at": "2026-09-19T12:51:14.568Z",
+    "split": "holdout",
+    "model": "flycoder0.1beta",
+    "results": [
+      {
+        "task": "js-factorial",
+        "language": "JavaScript",
+        "runId": "2026-09-19T12-50-01-687Z-36b668",
+        "status": "passed",
+        "reward": 1,
+        "strategy": "inspect",
+        "durationMs": 47198,
+        "metrics": [
+          {
+            "durationMs": 4828,
+            "promptTokens": 905,
+            "outputTokens": 55
+          },
+          {
+            "durationMs": 9884,
+            "promptTokens": 1079,
+            "outputTokens": 256
+          },
+          {
+            "durationMs": 1935,
+            "promptTokens": 1358,
+            "outputTokens": 26
+          },
+          {
+            "durationMs": 11268,
+            "promptTokens": 2026,
+            "outputTokens": 256
+          },
+          {
+            "durationMs": 1966,
+            "promptTokens": 2305,
+            "outputTokens": 26
+          },
+          {
+            "durationMs": 11740,
+            "promptTokens": 2970,
+            "outputTokens": 267
+          },
+          {
+            "durationMs": 2124,
+            "promptTokens": 3260,
+            "outputTokens": 26
+          },
+          {
+            "durationMs": 2997,
+            "promptTokens": 3411,
+            "outputTokens": 63
+          }
+        ]
+      },
+      {
+        "task": "py-chunks",
+        "language": "Python",
+        "runId": "2026-09-19T12-50-48-895Z-3cd29e",
+        "status": "passed",
+        "reward": 1,
+        "strategy": "inspect",
+        "durationMs": 25664,
+        "metrics": [
+          {
+            "durationMs": 4545,
+            "promptTokens": 896,
+            "outputTokens": 53
+          },
+          {
+            "durationMs": 11023,
+            "promptTokens": 1060,
+            "outputTokens": 292
+          },
+          {
+            "durationMs": 2495,
+            "promptTokens": 1374,
+            "outputTokens": 40
+          },
+          {
+            "durationMs": 1330,
+            "promptTokens": 1433,
+            "outputTokens": 26
+          },
+          {
+            "durationMs": 6103,
+            "promptTokens": 1639,
+            "outputTokens": 146
+          }
+        ]
+      }
+    ],
+    "passed": 2,
+    "total": 2,
+    "scope": "Small curriculum; no SWE benchmark or speedup claim. Only controller weights train, not Qwen."
+  },
+  "controller": {
+    "units": 126,
+    "connections": 422,
+    "updates": 7
+  },
+  "notes": [
+    "First pilot passed 3/4; relative-path feedback was improved before the recorded training run.",
+    "Evaluation task rewards do not update production weights.",
+    "These are small self-contained exercises, not a SWE benchmark.",
+    "No measured speedup or native context expansion is claimed."
+  ],
+  "additionalProbe": {
+    "task": "slugify with French accents, three-agent run",
+    "status": "error",
+    "reason": "Coder reached 16-turn limit; some accent checks still failed",
+    "reward": null,
+    "runId": "2026-09-19T12-53-52-996Z-199e06"
+  }
+}

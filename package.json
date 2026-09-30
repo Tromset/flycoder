@@ -1,22 +1,47 @@
 {
-  "name": "flybrain",
-  "version": "1.0.0",
+  "name": "flycoder",
+  "version": "0.1.0-beta.1",
   "private": true,
-  "description": "Interactive virtual Drosophila",
+  "description": "Local Qwen coding harness with a trainable FlyBrain controller",
   "scripts": {
     "caretaker": "node server/caretaker.js",
     "query-log": "bash tools/query-log.sh",
     "migrate-logs": "node server/migrate-logs.js",
-    "test": "node tests/run-node.js && node tests/habitat-world.test.js && node --test tests/fly-language.test.js tests/fly-control.test.js",
+    "test": "node tests/run-node.js && node tests/habitat-world.test.js && node --test tests/fly-language.test.js tests/fly-control.test.js && node --test tests/flycoder.test.cjs",
     "language:data": "node scripts/build_language_dataset.js",
     "control:evaluate": "node scripts/evaluate_motor_control.js",
     "language:train": ".venv/bin/python training/run.py --detach --serve",
     "language:serve": "HF_HOME=./data/huggingface .venv/bin/python -m mlx_lm server --model mlx-community/Qwen2.5-1.5B-Instruct-4bit --adapter-path data/fly-language/best --host 127.0.0.1 --port 8081",
-    "language:status": "node -e \"console.log(require('./data/fly-language/status.json'))\""
+    "language:status": "node -e \"console.log(require('./data/fly-language/status.json'))\"",
+    "start": "node flycoder/cli.cjs ui",
+    "flycoder": "node flycoder/cli.cjs",
+    "desktop": "electron flycoder/desktop/main.cjs",
+    "test:flycoder": "node --test tests/flycoder*.test.cjs",
+    "test:cli": "tsc -p flycoder/cli/tsconfig.json --noEmit",
+    "flycoder:train": "node flycoder/cli.cjs train",
+    "flycoder:install": "node flycoder/cli.cjs install"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.80.0",
     "better-sqlite3": "^12.8.0",
-    "ws": "^8.18.0"
+    "ws": "^8.18.0",
+    "chalk": "^5.6.2",
+    "ink": "^6.0.0",
+    "ollama": "^0.6.0",
+    "react": "^19.2.0",
+    "zod": "^4.0.0",
+    "tsx": "^4.19.0"
+  },
+  "bin": {
+    "flycoder": "flycoder/cli.cjs"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.2.0",
+    "typescript": "^5.6.0",
+    "electron": "^41.0.0"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }
