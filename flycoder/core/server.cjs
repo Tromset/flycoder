@@ -89,12 +89,11 @@ async function startServer(config, { port = 4317 } = {}) {
           .catch(error => broadcast({ type: 'error', error: error.message })).finally(() => { installing = false; broadcast({ type: 'idle' }); }); return;
       }
       if (req.method !== 'GET') return json(res, 404, { error: 'Unknown route' });
-      const assets = { '/': 'flycoder/web/index.html', '/app.js': 'flycoder/web/app.js', '/style.css': 'flycoder/web/style.css', '/scene.js': 'flycoder/web/scene.js',
-        '/three.js': 'js/vendor/three.min.js', '/assets/fly.json': 'flycoder/assets/fly.json', '/assets/fly.gltf': 'flycoder/assets/fly.gltf' };
+      const assets = { '/': 'flycoder/web/index.html', '/app.js': 'flycoder/web/app.js', '/style.css': 'flycoder/web/style.css' };
       if (!Object.hasOwn(assets, url.pathname)) return json(res, 404, { error: 'Not found' });
       const file = path.join(ROOT, assets[url.pathname]), ext = path.extname(file);
       res.setHeader('content-security-policy', "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'");
-      res.setHeader('content-type', { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.gltf': 'model/gltf+json' }[ext]);
+      res.setHeader('content-type', { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css' }[ext]);
       res.setHeader('cache-control', 'no-store');
       const data = fs.readFileSync(file); res.end(ext === '.html' ? data.toString().replace('__TOKEN__', token) : data);
     } catch (error) { if (!res.headersSent) json(res, 400, { error: error.message }); else res.end(); }

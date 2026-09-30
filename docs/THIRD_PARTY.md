@@ -8,4 +8,4 @@
 
 Sunflower inspire la séparation projet / conversation / résultats et les états de la mascotte. Hermes inspire les rôles spécialisés, la délégation bornée et la mémoire persistante. Leur code ne fait pas partie du moteur.
 
-La simulation fonctionnelle et ses poids proviennent des fichiers `js/constants.js` et `js/connectome.js` de ce dépôt (licence MIT existante). Three.js est la version déjà vendue dans `js/vendor`.
+Le graphe fonctionnel du contrôleur (`flycoder/models/flybrain-graph.json`) a été figé à partir des fichiers `js/constants.js` et `js/connectome.js` de l’ancienne simulation FlyBrain de ce dépôt (licence MIT existante), retirée depuis.

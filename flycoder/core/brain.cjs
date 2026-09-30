@@ -1,8 +1,7 @@
 'use strict';
-const fs = require('node:fs');
-const vm = require('node:vm');
 const path = require('node:path');
 const { ROOT, readJSON, atomicJSON } = require('./config.cjs');
+const GRAPH = path.join(ROOT, 'flycoder/models/flybrain-graph.json');
 const ACTIONS = ['inspect', 'test_first', 'direct'];
 const hash = text => { let h = 2166136261; for (const c of text) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; };
 function features(text) {
@@ -15,11 +14,9 @@ function features(text) {
 class FlyBrain {
   constructor(dataDir) {
     this.file = path.join(dataDir, 'brain.json');
-    const context = vm.createContext({});
-    vm.runInContext(fs.readFileSync(path.join(ROOT, 'js/constants.js'), 'utf8'), context);
-    vm.runInContext(fs.readFileSync(path.join(ROOT, 'js/connectome.js'), 'utf8'), context);
-    this.graph = JSON.parse(JSON.stringify(context.weights));
-    this.regions = JSON.parse(JSON.stringify(context.BRAIN.neuronRegions));
+    const { weights, regions } = readJSON(GRAPH, null);
+    this.graph = weights;
+    this.regions = regions;
     this.state = readJSON(this.file, { version: 1, episodes: 0, baseline: 0, totalReward: 0,
       weights: ACTIONS.map(() => Array(64).fill(0)), bias: [0.1, 0, 0], visits: [0, 0, 0] });
     if (this.state.version !== 1 || this.state.weights.length !== 3 || this.state.weights.some(w => w.length !== 64 || w.some(v => !Number.isFinite(v)))) throw new Error('Invalid controller checkpoint');
