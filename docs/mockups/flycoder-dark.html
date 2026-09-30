@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FlyCoder Dark Mockups</title>
+<style>
+:root{
+  --bg:#141414; --side:#1b1b1b; --panel:#1f1f1f; --card:#242424; --tile:#2c2c2c;
+  --line:#2f2f2f; --line-2:#3a3a3a; --text:#ececec; --text-2:#b9b9b9; --muted:#8a8a8a; --faint:#5e5e5e;
+  --glacier:#a7d8eb; --pollen:#edc76a; --slate:#718295; --ok:#8fd18f; --err:#ff5f6d; --lilac:#b7aacd;
+  --heat-0:#2a2a2a; --heat-1:#1f4a6e; --heat-2:#2f6fa3; --heat-3:#5aa3d0; --heat-4:#a7d8eb;
+  --r:10px; --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:#0b0b0b;color:var(--text);font:14px/1.45 -apple-system,BlinkMacSystemFont,"Inter","Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+.switcher{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;padding:18px 16px 14px}
+.switcher button{padding:7px 14px;border-radius:8px;color:var(--muted);border:1px solid var(--line)}
+.switcher button.on{color:var(--text);background:var(--card);border-color:var(--line-2)}
+.note{text-align:center;color:var(--faint);font-size:12px;margin:0 16px 14px}
+
+/* window */
+.win{max-width:1440px;height:900px;margin:0 auto 40px;border:1px solid #2a2a2a;border-radius:12px;overflow:hidden;display:grid;grid-template-columns:264px 1fr;background:var(--bg);box-shadow:0 30px 80px rgba(0,0,0,.6)}
+.win[hidden]{display:none}
+.side{background:var(--side);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+.chrome{height:52px;display:flex;align-items:center;gap:14px;padding:0 14px}
+.lights{display:flex;gap:8px}.lights i{width:12px;height:12px;border-radius:50%;background:#ff5f57}.lights i:nth-child(2){background:#febc2e}.lights i:nth-child(3){background:#28c840}
+.chrome .ic{color:var(--muted);font-size:15px}
+.seg{margin-left:auto;display:flex;background:#262626;border-radius:8px;padding:2px}
+.seg span{padding:3px 8px;border-radius:6px;color:var(--muted);font-size:12px}
+.seg span.on{background:#3a3a3a;color:var(--text)}
+.nav{padding:4px 8px 10px;border-bottom:1px solid var(--line)}
+.nav a{display:flex;align-items:center;gap:10px;padding:6px 10px;border-radius:8px;color:var(--text-2);text-decoration:none}
+.nav a.primary{background:#2b2b2b;color:var(--text)}
+.nav a:hover{background:#262626}
+.nav .k{margin-left:auto;font-size:11px;color:var(--faint);font-family:var(--mono)}
+.badge{font-size:10.5px;padding:1px 6px;border-radius:5px;background:#2f2f2f;color:var(--text-2)}
+.groups{flex:1;overflow:auto;padding:10px 8px}
+.group{margin-bottom:6px}
+.gh{display:flex;align-items:center;padding:6px 10px;color:var(--muted);font-size:13px}
+.gh .chev{margin-left:4px;color:var(--faint)}
+.gh .act{margin-left:auto;display:flex;gap:10px;color:var(--faint)}
+.sess{display:flex;align-items:center;gap:10px;padding:6px 10px;border-radius:8px;color:var(--text-2);white-space:nowrap;overflow:hidden}
+.sess span{overflow:hidden;text-overflow:ellipsis}
+.sess.on{background:#2a2a2a;color:var(--text)}
+.sess svg{flex:none}
+.dot{display:inline-block;width:7px;height:7px;min-width:7px;border-radius:50%;flex:none;margin:0 3px}
+.dot.run{background:var(--pollen);animation:breathe 1.6s ease-in-out infinite}
+.dot.ok{background:var(--ok)} .dot.idle{border:1.5px solid var(--faint)}
+@keyframes breathe{50%{opacity:.35}}
+.more{padding:8px 10px;color:var(--muted);font-size:13px}
+.user{border-top:1px solid var(--line);padding:12px 14px;display:flex;align-items:center;gap:10px}
+.av{width:26px;height:26px;border-radius:50%;background:#2e2e2e;display:grid;place-items:center;font-size:10.5px;font-weight:600}
+.user small{color:var(--muted)} .user .cfg{margin-left:auto;color:var(--faint)}
+
+/* main */
+.main{display:flex;flex-direction:column;min-width:0;min-height:0;position:relative}
+.home{flex:1;display:flex;flex-direction:column;align-items:center;padding:52px 32px 0;overflow:auto}
+.hello{width:min(760px,100%);display:flex;align-items:center;gap:12px;font-size:22px;font-weight:500;margin:10px 0 40px}
+.hello svg{width:26px;height:24px}
+.stats{width:min(526px,100%);background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
+.stats-top{display:flex;align-items:center;gap:4px;margin-bottom:12px}
+.pill{padding:3px 8px;border-radius:6px;color:var(--muted);font-size:13px}
+.pill.on{background:#2e2e2e;color:var(--text)}
+.stats-top .r{margin-left:auto;display:flex;gap:2px}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+.tile{background:var(--tile);border-radius:6px;padding:6px 8px}
+.tile small{display:block;color:var(--muted);font-size:12.5px}
+.tile b{font-weight:500;font-size:14.5px;font-variant-numeric:tabular-nums}
+.tile b.accent{color:var(--pollen)}
+.heat{display:grid;grid-template-columns:repeat(26,1fr);grid-auto-flow:column;grid-template-rows:repeat(7,1fr);gap:3px;margin:10px 0 8px}
+.heat i{aspect-ratio:1;border-radius:2px;background:var(--heat-0)}
+.stats-foot{font-size:12px;color:var(--muted)}
+.stats-foot b{color:var(--glacier);font-weight:500}
+
+/* composer */
+.composer-wrap{width:min(842px,calc(100% - 48px));margin:0 auto 12px}
+.chips{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:7px;padding:4px 9px;border-radius:7px;background:#262626;border:1px solid var(--line);color:var(--text-2);font-size:13.5px}
+.chip.add{padding:4px 8px}
+.chip .gd{width:6px;height:6px;border-radius:50%;background:var(--ok)}
+.composer{background:var(--panel);border:1px solid var(--line-2);border-radius:12px;padding:12px 14px;display:flex;gap:10px;align-items:flex-end}
+.composer .ta{flex:1;min-height:40px;color:var(--text);font-size:15px;line-height:1.5}
+.composer .ta.ph{color:var(--faint)}
+.caret{display:inline-block;width:1.5px;height:17px;background:var(--text);vertical-align:-3px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.send{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;color:var(--text-2)}
+.send.go{background:var(--glacier);color:#0f1a20}
+.send.stop{background:#3a3a3a;color:var(--text)}
+.below{display:flex;align-items:center;gap:14px;padding:8px 12px 0;color:var(--muted);font-size:13px}
+.below .r{margin-left:auto;display:flex;gap:16px;align-items:center;color:var(--text-2)}
+.ring{width:14px;height:14px;border-radius:50%;background:conic-gradient(var(--glacier) var(--p,0%),#333 0)}
+.ring::after{content:"";display:block;width:8px;height:8px;margin:3px;border-radius:50%;background:var(--bg)}
+
+/* session view */
+.shead{height:52px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;padding:0 20px}
+.shead h2{font-size:14px;font-weight:500;margin:0}
+.shead .meta{color:var(--muted);font-size:12.5px;display:flex;gap:8px;align-items:center}
+.shead .r{margin-left:auto;display:flex;gap:8px}
+.btn{padding:5px 11px;border-radius:7px;border:1px solid var(--line-2);color:var(--text-2);font-size:13px}
+.btn.pri{background:var(--glacier);border-color:var(--glacier);color:#0f1a20;font-weight:500}
+.split{flex:1;display:grid;grid-template-columns:1fr 400px;min-height:0}
+.thread{overflow:auto;padding:26px 0 10px;display:flex;flex-direction:column}
+.col{width:min(760px,calc(100% - 48px));margin:0 auto}
+.msg-user{align-self:flex-end;margin-left:auto;background:#2a2a2a;border-radius:12px;padding:10px 14px;max-width:80%;margin-bottom:22px}
+.msg-ai{margin-bottom:14px;color:var(--text);line-height:1.6}
+.msg-ai p{margin:0 0 10px}
+code{font-family:var(--mono);font-size:12.5px;background:#262626;padding:1px 5px;border-radius:4px;color:var(--glacier)}
+.tool{border:1px solid var(--line);border-radius:9px;margin:0 0 10px;overflow:hidden;font-size:13px}
+.tool-h{display:flex;align-items:center;gap:9px;padding:8px 12px;color:var(--text-2)}
+.tool-h .n{color:var(--text)} .tool-h .t{margin-left:auto;color:var(--faint);font-family:var(--mono);font-size:11.5px}
+.tool-b{border-top:1px solid var(--line);background:#181818;padding:9px 12px;font-family:var(--mono);font-size:12px;color:var(--text-2);white-space:pre;overflow:auto}
+.tool-b .ok{color:var(--ok)} .tool-b .err{color:var(--err)} .tool-b .dim{color:var(--faint)}
+.role{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);margin:6px 0 8px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.04em}
+.role i{width:6px;height:6px;border-radius:50%}
+.thinking{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:13px;margin:6px 0 18px}
+.shimmer{background:linear-gradient(90deg,var(--muted) 0%,var(--text) 50%,var(--muted) 100%);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:scan 2s linear infinite}
+@keyframes scan{from{background-position:200% 0}to{background-position:-200% 0}}
+.review{border-left:1px solid var(--line);background:var(--side);display:flex;flex-direction:column;min-height:0}
+.tabs{display:flex;gap:4px;padding:10px 12px;border-bottom:1px solid var(--line)}
+.tabs span{padding:4px 10px;border-radius:6px;color:var(--muted);font-size:13px}
+.tabs span.on{background:#2a2a2a;color:var(--text)}
+.tabs em{font-style:normal;font-size:11px;color:var(--faint);margin-left:4px}
+.files{padding:8px}
+.file{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;font-family:var(--mono);font-size:12px;color:var(--text-2)}
+.file.on{background:#262626;color:var(--text)}
+.file .add{margin-left:auto;color:var(--ok)} .file .del{color:var(--err)}
+.diff{flex:1;overflow:auto;border-top:1px solid var(--line);font-family:var(--mono);font-size:12px;line-height:1.7}
+.diff div{padding:0 12px;white-space:pre;color:var(--text-2)}
+.diff .h{color:var(--faint);background:#1e1e1e;padding:4px 12px}
+.diff .a{background:rgba(143,209,143,.09);color:#cfe9cf}.diff .a::first-letter{color:var(--ok)}
+.diff .d{background:rgba(255,95,109,.08);color:#f0c4c8}
+.diff .ln{color:var(--faint);display:inline-block;width:28px}
+.checks{border-top:1px solid var(--line);padding:12px}
+.checkrow{display:flex;align-items:center;gap:10px;font-size:13px;padding:4px 0}
+.checkrow .v{margin-left:auto;font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+.reward{margin-top:10px;display:flex;align-items:center;gap:10px;background:#222;border:1px solid var(--line);border-radius:8px;padding:10px}
+.reward b{font-family:var(--mono);color:var(--pollen);font-size:18px}
+.reward small{color:var(--muted);display:block}
+
+/* colony + brain + training */
+.page{flex:1;overflow:auto;padding:28px 0}
+.page h1{font-size:22px;font-weight:500;margin:0 0 6px}
+.page .lead{color:var(--muted);margin:0 0 22px}
+.agents{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:26px}
+.agent{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.agent .top{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.agent .top i{width:8px;height:8px;border-radius:50%}
+.agent .top small{margin-left:auto;font-size:11.5px;color:var(--muted)}
+.agent p{margin:0 0 12px;color:var(--text-2);font-size:13px}
+.bar{height:3px;background:#2c2c2c;border-radius:2px;overflow:hidden}.bar i{display:block;height:100%}
+.agent .kv{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:8px;font-family:var(--mono)}
+.sec{display:flex;align-items:baseline;justify-content:space-between;margin:0 0 10px}
+.sec h3{font-size:14px;font-weight:500;margin:0}.sec span{font-size:12px;color:var(--muted)}
+.packets{border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.pk{display:grid;grid-template-columns:80px 150px 1fr 70px;gap:12px;padding:9px 14px;border-bottom:1px solid var(--line);font-size:12.5px;align-items:center}
+.pk:last-child{border:0}
+.pk .t{font-family:var(--mono);color:var(--faint)}
+.pk .route{display:flex;align-items:center;gap:6px;color:var(--text-2)}
+.pk .body{font-family:var(--mono);color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pk .sz{font-family:var(--mono);color:var(--faint);text-align:right}
+.brain{display:grid;grid-template-columns:1fr 260px;gap:12px}
+.stage{background:#101010;border:1px solid var(--line);border-radius:var(--r);height:520px;position:relative;overflow:hidden}
+.stage canvas{width:100%;height:100%;display:block}
+.legend{position:absolute;left:12px;bottom:10px;display:flex;gap:14px;font-size:12px;color:var(--muted)}
+.legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
+.inspect{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px;font-size:13px}
+.inspect .kv{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line);color:var(--muted)}
+.inspect .kv b{color:var(--text);font-weight:500;font-family:var(--mono);font-size:12px}
+.train{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:22px}
+.train .tile{padding:12px 14px}.train .tile b{font-size:22px}
+.runs{border:1px solid var(--line);border-radius:var(--r)}
+.runrow{display:grid;grid-template-columns:24px 1fr 80px 130px 40px;gap:12px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line);font-size:13px}
+.runrow:last-child{border:0}
+.runrow .m{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.runrow .pos{color:var(--ok);font-family:var(--mono)} .runrow .neg{color:var(--err);font-family:var(--mono)}
+.fine{color:var(--faint);font-size:12px;margin-top:14px}
+
+@media (max-width:900px){
+  .win{grid-template-columns:1fr;height:auto;min-height:760px;margin:0 16px 40px}
+  .side{display:none}
+  .split{grid-template-columns:1fr}.review{display:none}
+  .agents,.train{grid-template-columns:1fr}.brain{grid-template-columns:1fr}
+  .pk{grid-template-columns:60px 1fr 50px}.pk .route{display:none}
+  .below .r span:not(.ring){display:none}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+
+<div class="switcher" role="tablist">
+  <button class="on" data-s="home">Accueil</button>
+  <button data-s="mission">Mission en cours</button>
+  <button data-s="colony">Colonie</button>
+  <button data-s="brain">Cerveau</button>
+  <button data-s="training">Apprentissage</button>
+</div>
+<p class="note">Maquettes FlyCoder, thème sombre. Tous les chiffres affichés sont fictifs.</p>
+
+<template id="sidebar">
+  <aside class="side">
+    <div class="chrome">
+      <div class="lights"><i></i><i></i><i></i></div>
+      <span class="ic">▯</span><span class="ic">←</span><span class="ic">→</span>
+      <div class="seg"><span>◌</span><span class="on">&lt;/&gt;</span></div>
+    </div>
+    <nav class="nav">
+      <a class="primary" href="#"><span>＋</span> Nouvelle mission <span class="k">⌘K</span></a>
+      <a href="#"><span>⌁</span> Colonie <span class="badge">3 agents</span></a>
+      <a href="#"><span>⠿</span> Cerveau</a>
+      <a href="#"><span>↗</span> Apprentissage</a>
+      <a href="#" style="color:var(--muted)"><span>⌄</span> Plus</a>
+    </nav>
+    <div class="groups">
+      <div class="group">
+        <div class="gh">flycoder<span class="act"><span>＋</span><span>⌕</span><span>⚙</span></span></div>
+        <div class="sess __s1"><span class="dot run"></span><span>Corriger le slug unicode</span></div>
+        <div class="sess"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M3 1v6a3 3 0 0 0 3 3h3M3 3h0M9 8l0 4" stroke="#b7aacd" stroke-width="1.4" fill="none"/></svg><span>Protocole FlyLink v2</span></div>
+        <div class="sess"><span class="dot ok"></span><span>Nettoyer la simulation</span></div>
+      </div>
+      <div class="group">
+        <div class="gh">hello-fly</div>
+        <div class="sess"><span class="dot ok"></span><span>Premier exercice slug.cjs</span></div>
+      </div>
+      <div class="group"><div class="gh">qwen-training <span class="chev">›</span><span class="act"><span>＋</span></span></div></div>
+      <div class="group"><div class="gh">ollama-code <span class="chev">›</span><span class="act"><span>＋</span></span></div></div>
+      <div class="group"><div class="gh">sunflower <span class="chev">›</span><span class="act"><span>＋</span></span></div></div>
+      <div class="group"><div class="gh">Sans projet</div>
+        <div class="sess"><span class="dot idle"></span><span>Comparer Qwen3.5 7B et 14B</span></div>
+      </div>
+      <div class="more">Voir plus de missions</div>
+    </div>
+    <div class="user"><div class="av">VD</div><div>Victor <small>· Local</small></div><span class="cfg">⚙</span></div>
+  </aside>
+</template>
+
+<template id="fly"><svg viewBox="0 0 14 13" aria-hidden="true"><path fill="#a7d8eb" d="M1 2h3v1h1v3H3V5H1zm9 0h3v3h-2v1H9V3h1z"/><path fill="#718295" d="M5 1h4v1h1v6H9v2H5V8H4V2h1zM2 8h2v1H2zm8 0h2v1h-2zM3 10h2v2H3zm6 0h2v2H9z"/><path fill="#edc76a" d="M4 3h3v3H4zm4 0h3v3H8z"/><path fill="#fff3c3" d="M5 3h1v1H5zm4 0h1v1H9z"/></svg></template>
+
+<!-- 1. HOME -->
+<section class="win" data-screen="home">
+  <div class="main">
+    <div class="home">
+      <div class="hello"><span data-fly></span>Qu’est-ce qu’on construit, Victor ?</div>
+      <div class="stats">
+        <div class="stats-top"><span class="pill on">Aperçu</span><span class="pill">Stratégies</span>
+          <div class="r"><span class="pill on">Tout</span><span class="pill">30 j</span><span class="pill">7 j</span></div></div>
+        <div class="tiles">
+          <div class="tile"><small>Missions</small><b>48</b></div>
+          <div class="tile"><small>Messages</small><b>2 114</b></div>
+          <div class="tile"><small>Tokens (locaux)</small><b>31,6 M</b></div>
+          <div class="tile"><small>Tests réussis</small><b class="accent">37 / 44</b></div>
+          <div class="tile"><small>Heure de pointe</small><b>23 h</b></div>
+          <div class="tile"><small>Modèle favori</small><b>flycoder0.1beta</b></div>
+        </div>
+        <div class="heat" id="heat"></div>
+        <div class="stats-foot">Récompense cumulée du contrôleur : <b>+29</b> · rien n’a quitté votre machine.</div>
+      </div>
+    </div>
+    <div class="composer-wrap">
+      <div class="chips"><span class="chip"><span class="gd"></span>Local · Ollama</span><span class="chip">&lt;/&gt; flycoder</span><span class="chip">⑂ main</span><span class="chip add">＋</span></div>
+      <div class="composer"><div class="ta">Ajoute un vérificateur Python à hello-fly et fais passer les tests<span class="caret"></span></div><button class="send go">↑</button></div>
+      <div class="below"><span>＋</span><span>🎙︎ ⌄</span><span>Code ⌄</span>
+        <div class="r"><span>flycoder0.1beta</span><span>Effort moyen</span><span class="ring" style="--p:18%" title="Contexte utilisé"></span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 2. MISSION -->
+<section class="win" data-screen="mission" hidden>
+  <div class="main">
+    <div class="shead"><h2>Corriger le slug unicode</h2>
+      <div class="meta"><span>⑂ flycoder/fix-slug</span><span>·</span><span>copie isolée</span></div>
+      <div class="r"><button class="btn">↓ À améliorer</button><button class="btn">↑ Utile</button><button class="btn pri">Appliquer 2 fichiers</button></div></div>
+    <div class="split">
+      <div class="thread">
+        <div class="col" style="display:flex;flex-direction:column">
+          <div class="msg-user">Les accents cassent <code>slugify()</code> dans hello-fly. Corrige et vérifie avec les tests.</div>
+          <div class="role"><i style="background:var(--glacier)"></i>Architecte</div>
+          <div class="msg-ai"><p>Le problème vient de la regex <code>/[^a-z0-9]+/g</code> appliquée avant normalisation : « Été » devient « t ». Plan : normaliser en NFD, retirer les diacritiques, puis ajouter deux cas de test.</p></div>
+          <div class="tool"><div class="tool-h"><span>⌕</span><span class="n">Lu 3 fichiers</span><span>slug.cjs, slug.test.cjs, .flycoder.json</span><span class="t">0,2 s</span></div></div>
+          <div class="role"><i style="background:var(--pollen)"></i>Codeur</div>
+          <div class="tool"><div class="tool-h"><span>✎</span><span class="n">Modifié slug.cjs</span><span style="color:var(--ok)">+3</span><span style="color:var(--err)">−1</span><span class="t">1,4 s</span></div></div>
+          <div class="tool"><div class="tool-h"><span>▸</span><span class="n">Exécuté</span><code>node --test</code><span class="t">0,9 s</span></div>
+            <div class="tool-b"><span class="dim">▶ slugify</span>
+  <span class="ok">✔</span> garde les minuscules ASCII
+  <span class="ok">✔</span> retire les accents (Été → ete)
+  <span class="ok">✔</span> fusionne les séparateurs
+<span class="ok">ℹ pass 3</span>  <span class="dim">ℹ fail 0</span></div></div>
+          <div class="role"><i style="background:var(--lilac)"></i>Relecteur</div>
+          <div class="msg-ai"><p>Correction minimale, sans dépendance ajoutée. Les trois tests passent dans la copie isolée. Je vérifie un dernier cas : chaîne vide.</p></div>
+          <div class="thinking"><span class="dot run"></span><span class="shimmer">Le relecteur exécute un test supplémentaire…</span><span style="color:var(--faint);font-family:var(--mono);font-size:12px">12 s · 1,8 k tokens</span></div>
+        </div>
+      </div>
+      <aside class="review">
+        <div class="tabs"><span class="on">Fichiers<em>2</em></span><span>Vérifications<em>3/3</em></span><span>FlyLink</span></div>
+        <div class="files">
+          <div class="file on">examples/hello-fly/slug.cjs<span class="add">+3</span><span class="del">−1</span></div>
+          <div class="file">examples/hello-fly/slug.test.cjs<span class="add">+6</span></div>
+        </div>
+        <div class="diff">
+          <div class="h">@@ -1,6 +1,8 @@</div>
+          <div><span class="ln">1</span> function slugify(input) {</div>
+          <div class="d"><span class="ln">2</span>-  return String(input).toLowerCase()</div>
+          <div class="a"><span class="ln">2</span>+  return String(input)</div>
+          <div class="a"><span class="ln">3</span>+    .normalize('NFD')</div>
+          <div class="a"><span class="ln">4</span>+    .replace(/[&#92;u0300-&#92;u036f]/g, '')</div>
+          <div class="a"><span class="ln">5</span>+    .toLowerCase()</div>
+          <div><span class="ln">6</span>     .replace(/[^a-z0-9]+/g, '-')</div>
+          <div><span class="ln">7</span>     .replace(/^-|-$/g, '');</div>
+          <div><span class="ln">8</span> }</div>
+        </div>
+        <div class="checks">
+          <div class="checkrow"><span style="color:var(--ok)">●</span>test · node --test<span class="v">3 / 3 · 0,9 s</span></div>
+          <div class="checkrow"><span style="color:var(--pollen)">◐</span>relecture<span class="v">en cours</span></div>
+          <div class="reward"><b>+1</b><div>Récompense en attente<small>Attribuée si tous les tests passent à la fin.</small></div></div>
+        </div>
+      </aside>
+    </div>
+    <div class="composer-wrap" style="margin-top:8px">
+      <div class="composer"><div class="ta ph">Répondre ou réorienter la mission…</div><button class="send stop">■</button></div>
+      <div class="below"><span>＋</span><span>Code ⌄</span><div class="r"><span>Stratégie : tester d’abord</span><span>flycoder0.1beta</span><span class="ring" style="--p:42%"></span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 3. COLONY -->
+<section class="win" data-screen="colony" hidden>
+  <div class="main">
+    <div class="shead"><h2>Colonie</h2><div class="meta">3 contextes Qwen · coordonnés par FlyBrain</div><div class="r"><button class="btn">Transcrire les échanges</button></div></div>
+    <div class="page"><div class="col">
+      <h1>Chacun son rôle. Une mission commune.</h1>
+      <p class="lead">Les passages de relais sont enregistrés en FlyLink, un JSON compact et versionné.</p>
+      <div class="agents">
+        <div class="agent"><div class="top"><i style="background:var(--glacier)"></i><b>Architecte</b><small>Terminé</small></div><p>Explore et propose un plan.</p><div class="bar"><i style="width:100%;background:var(--glacier)"></i></div><div class="kv"><span>4 appels</span><span>2,1 k tok</span></div></div>
+        <div class="agent"><div class="top"><i style="background:var(--pollen)"></i><b>Codeur</b><small>Terminé</small></div><p>Modifie et corrige les fichiers.</p><div class="bar"><i style="width:100%;background:var(--pollen)"></i></div><div class="kv"><span>3 appels</span><span>3,4 k tok</span></div></div>
+        <div class="agent"><div class="top"><i style="background:var(--lilac)"></i><b>Relecteur</b><small style="color:var(--pollen)">Actif</small></div><p>Inspecte le résultat.</p><div class="bar"><i style="width:55%;background:var(--lilac)"></i></div><div class="kv"><span>1 appel</span><span>1,8 k tok</span></div></div>
+      </div>
+      <div class="sec"><h3>Échanges</h3><span>6 paquets · 1,2 ko au lieu de 3,9 ko en texte brut</span></div>
+      <div class="packets" id="packets"></div>
+    </div></div>
+  </div>
+</section>
+
+<!-- 4. BRAIN -->
+<section class="win" data-screen="brain" hidden>
+  <div class="main">
+    <div class="shead"><h2>Cerveau</h2><div class="meta">Contrôleur v1 · 212 unités</div><div class="r"><button class="btn">Figer la vue</button></div></div>
+    <div class="page"><div class="col" style="width:min(1060px,calc(100% - 48px))">
+      <div class="brain">
+        <div class="stage"><canvas id="brain-canvas"></canvas>
+          <div class="legend"><span><i style="background:var(--glacier)"></i>Circuits FlyBrain</span><span><i style="background:var(--lilac)"></i>Mémoire sparse</span><span><i style="background:var(--pollen)"></i>Décisions SWE</span></div></div>
+        <div class="inspect">
+          <div class="sec"><h3>KC-117</h3><span>Mémoire sparse</span></div>
+          <div class="kv">Activation<b>0,82</b></div>
+          <div class="kv">Connexions entrantes<b>14</b></div>
+          <div class="kv">Poids vers « tester d’abord »<b>+0,31</b></div>
+          <div class="kv">Poids vers « lire plus »<b>−0,07</b></div>
+          <p class="fine">Chaque point est une unité du contrôleur exécuté. Ce ne sont ni des neurones biologiques, ni des activations internes de Qwen.</p>
+        </div>
+      </div>
+    </div></div>
+  </div>
+</section>
+
+<!-- 5. TRAINING -->
+<section class="win" data-screen="training" hidden>
+  <div class="main">
+    <div class="shead"><h2>Apprentissage</h2><div class="meta">4 exercices JS + Python</div><div class="r"><button class="btn">Évaluer sur 2 inédits</button><button class="btn pri">Lancer l’entraînement</button></div></div>
+    <div class="page"><div class="col">
+      <h1>Un test réussi. Une expérience en plus.</h1>
+      <p class="lead">Les assertions sont fixées avant que Qwen écrive le code. +1 si tout passe, −1 si la correction échoue.</p>
+      <div class="train">
+        <div class="tile"><small>Mises à jour du contrôleur</small><b>64</b></div>
+        <div class="tile"><small>Récompense cumulée</small><b class="accent">+29</b></div>
+        <div class="tile"><small>Validation réussie</small><b>2 / 2</b></div>
+      </div>
+      <div class="sec"><h3>Journal</h3><span>Épisode 16 sur 16</span></div>
+      <div class="runs" id="runs"></div>
+      <p class="fine">L’apprentissage ajuste les poids du contrôleur. Les poids de Qwen restent inchangés. Ces exercices ne constituent pas un benchmark SWE.</p>
+    </div></div>
+  </div>
+</section>
+
+<script>
+const side=document.getElementById('sidebar').content, fly=document.getElementById('fly').innerHTML;
+document.querySelectorAll('.win').forEach(w=>{const s=side.cloneNode(true);if(w.dataset.screen==='mission')s.querySelector('.__s1').classList.add('on');w.prepend(s);});
+document.querySelectorAll('[data-fly]').forEach(e=>e.outerHTML=fly);
+document.querySelectorAll('.switcher button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.switcher button').forEach(x=>x.classList.toggle('on',x===b));
+  document.querySelectorAll('.win').forEach(w=>w.hidden=w.dataset.screen!==b.dataset.s);
+  if(b.dataset.s==='brain')drawBrain();
+});
+// heatmap (deterministic fake data)
+let seed=7;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+const heat=document.getElementById('heat');
+for(let i=0;i<182;i++){const v=rnd(),c=document.createElement('i');const lvl=i>120?(v>.55?Math.ceil((v-.55)*9):0):(v>.9?1+Math.floor((v-.9)*30):0);if(lvl)c.style.background=`var(--heat-${Math.min(lvl,4)})`;heat.appendChild(c);}
+// packets
+const P=[['00:02','Architecte','Codeur','{"v":1,"k":"plan","f":["slug.cjs"],"s":"nfd→strip→lower"}','186 o'],['00:05','Codeur','FlyBrain','{"v":1,"k":"edit","f":"slug.cjs","d":"+3/-1"}','142 o'],['00:06','FlyBrain','Codeur','{"v":1,"k":"route","a":"test_first","p":0.71}','98 o'],['00:07','Codeur','Vérif.','{"v":1,"k":"run","argv":["node","--test"]}','104 o'],['00:08','Vérif.','Relecteur','{"v":1,"k":"result","pass":3,"fail":0}','96 o'],['00:09','Relecteur','FlyBrain','{"v":1,"k":"review","ok":true,"note":"edge: empty"}','131 o']];
+const col={Architecte:'var(--glacier)',Codeur:'var(--pollen)',Relecteur:'var(--lilac)',FlyBrain:'var(--slate)','Vérif.':'var(--ok)'};
+document.getElementById('packets').innerHTML=P.map(p=>`<div class="pk"><span class="t">${p[0]}</span><span class="route"><i class="dot" style="background:${col[p[1]]}"></i>${p[1]} → ${p[2]}</span><span class="body">${p[3]}</span><span class="sz">${p[4]}</span></div>`).join('');
+// training log
+const R=[['clamp-range','JS','tester d’abord',1],['parse-csv','Python','lire plus',1],['dedupe','JS','tester d’abord',1],['word-count','Python','coder direct',-1],['clamp-range','JS','tester d’abord',1],['parse-csv','Python','tester d’abord',1]];
+document.getElementById('runs').innerHTML=R.map((r,i)=>`<div class="runrow"><span class="m">${16-i}</span><span>${r[0]}</span><span class="m">${r[1]}</span><span class="m">${r[2]}</span><span class="${r[3]>0?'pos':'neg'}">${r[3]>0?'+1':'−1'}</span></div>`).join('');
+// brain
+let drawn=false;function drawBrain(){if(drawn)return;drawn=true;const c=document.getElementById('brain-canvas'),r=c.getBoundingClientRect(),d=devicePixelRatio||1;c.width=r.width*d;c.height=r.height*d;const x=c.getContext('2d');x.scale(d,d);const W=r.width,H=r.height;seed=3;
+const layers=[[40,'#a7d8eb',.18],[140,'#b7aacd',.52],[8,'#edc76a',.86]],pts=[];
+layers.forEach(([n,cl,fx],li)=>{for(let i=0;i<n;i++){const y=li===2?H*(.2+.6*i/(n-1)):H*(.08+.84*rnd());pts.push({x:W*fx+(li===2?0:(rnd()-.5)*W*(li?0.3:0.14)),y,cl,li,a:rnd()});}});
+x.lineWidth=.6;pts.forEach(p=>{if(p.li===1&&p.a>.7){pts.filter(q=>q.li===2&&rnd()>.6).forEach(q=>{x.strokeStyle=`rgba(237,199,106,${p.a*.25})`;x.beginPath();x.moveTo(p.x,p.y);x.lineTo(q.x,q.y);x.stroke();});}if(p.li===0){const q=pts[40+Math.floor(rnd()*140)];x.strokeStyle='rgba(167,216,235,.12)';x.beginPath();x.moveTo(p.x,p.y);x.lineTo(q.x,q.y);x.stroke();}});
+pts.forEach(p=>{x.globalAlpha=.35+p.a*.65;x.fillStyle=p.cl;x.beginPath();x.arc(p.x,p.y,p.li===2?6:2.2+p.a*1.6,0,7);x.fill();});x.globalAlpha=1;
+const s=pts.find(p=>p.li===1&&p.a>.8);if(s){x.strokeStyle='#ececec';x.lineWidth=1.5;x.beginPath();x.arc(s.x,s.y,8,0,7);x.stroke();}
+x.fillStyle='#8a8a8a';x.font='12px system-ui';['tester d’abord','lire plus','coder direct','demander','relire','découper','réessayer','arrêter'].forEach((t,i)=>x.fillText(t,W*.86+12,H*(.2+.6*i/7)+4));}
+</script>
+</body>
+</html>
