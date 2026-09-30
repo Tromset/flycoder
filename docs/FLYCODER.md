@@ -66,7 +66,7 @@ Mission → encodage sparse → circuits FlyBrain + tête de routage
                      poids du routage + mémoire
 ```
 
-Le contrôleur réutilise les 59 groupes et 230 connexions fonctionnelles de `js/constants.js`. L’état du réseau est propagé et module les scores des stratégies. Une projection déterministe du texte active au plus huit unités parmi 64 unités de type Kenyon. Trois unités de sortie choisissent une stratégie ; leurs 192 poids et trois biais sont ajustés par gradient de politique avec baseline. L’exploration des exercices fait tourner les trois stratégies. `direct` évite l’appel architecte ; `test_first` mesure les erreurs initiales ; `inspect` invite à lire avant de modifier.
+Le contrôleur réutilise les 59 groupes et 230 connexions fonctionnelles de FlyBrain, figés dans `flycoder/models/flybrain-graph.json`. L’état du réseau est propagé et module les scores des stratégies. Une projection déterministe du texte active au plus huit unités parmi 64 unités de type Kenyon. Trois unités de sortie choisissent une stratégie ; leurs 192 poids et trois biais sont ajustés par gradient de politique avec baseline. L’exploration des exercices fait tourner les trois stratégies. `direct` évite l’appel architecte ; `test_first` mesure les erreurs initiales ; `inspect` invite à lire avant de modifier.
 
 Une vérification indépendante repasse tous les checks après la dernière édition. Tous passent : +1. Un échec après au plus deux cycles de correction : −1. Sans check : statut **À vérifier**, aucune récompense automatique. Une erreur de transport ou un abandon ne devient pas une réussite. Un feedback humain unique par mission produit un signal distinct de ±0,25. Les expériences ayant reçu une récompense positive peuvent être récupérées par similarité de l’encodage sparse.
 
@@ -89,11 +89,9 @@ FlyLink transporte `[1, séquence, source, destination, type, contenu]`. Le bout
 
 La mémoire récupérée et l’archivage d’anciens groupes assistant/outils permettent de poursuivre une tâche avec un budget borné. Le compacteur conserve la demande originale, le système et les groupes d’outils complets les plus récents. Il utilise un budget conservateur en octets, distinct des comptes de tokens réels fournis par Ollama. Les fichiers peuvent être relus. Cette mémoire est sélective et peut perdre des détails : elle n’augmente pas la fenêtre native de Qwen. Chaque appel transmet explicitement `num_ctx` et journalise temps, tokens d’entrée/sortie et débit. Aucun gain de vitesse n’est revendiqué sans comparaison contrôlée.
 
-## La carte et la mouche
+## La carte du contrôleur
 
 La carte affiche les 126 unités numériques et 422 connexions effectivement utilisées par le contrôleur, avec leur activation, poids, biais et possibilité d’inspection au clic ou au clavier. Les positions sont une mise en page fonctionnelle, pas des coordonnées anatomiques. Les groupes d’origine sont les abstractions du simulateur FlyBrain ; ils ne sont pas les 139 255 neurones individuels FlyWire. Les données binaires complètes FlyWire ne sont pas présentes dans ce checkout. Ollama n’expose pas les activations internes de Qwen à cette interface.
-
-Pip est un modèle original de 50 volumes voxel, rendu avec le Three.js déjà présent dans le dépôt. Ses ailes et son mouvement répondent aux états repos, travail et récompense. La préférence de réduction du mouvement est respectée. `flycoder/assets/fly.gltf` est autonome, contient une animation et peut être importé dans Blender. `python3 scripts/build_fly_asset.py` régénère les assets.
 
 ## Ce qu’est le modèle beta
 
@@ -107,7 +105,7 @@ npm run test:cli         # TypeScript du CLI dérivé d’Ollama-Code
 flycoder doctor
 ```
 
-La suite finale passe 139 vérifications (99 de simulation, 9 d’habitat, 13 de dialogue/contrôle et 18 du harness), ainsi que le contrôle TypeScript du CLI. Les tests couvrent les contrats d’outils, les récompenses, la persistance des poids, les limites de contexte, les modes en lecture seule, l’intégrité des tests, les chemins et liens symboliques, les dépendances en lecture seule, les timeouts, l’annulation, les conflits d’application et les protections HTTP du serveur local. L’interface a été inspectée dans le navigateur en desktop et à 390 px, puis dans Electron.
+Depuis le retrait de la simulation, `npm test` exécute 20 vérifications : 18 du harness (dont 3 réservées à la sandbox macOS) et 2 du jeu de données de la voix Qwen 2.5 conservé. `npm run test:cli` contrôle le TypeScript du CLI. Les tests couvrent les contrats d’outils, les récompenses, la persistance des poids, les limites de contexte, les modes en lecture seule, l’intégrité des tests, les chemins et liens symboliques, les dépendances en lecture seule, les timeouts, l’annulation, les conflits d’application et les protections HTTP du serveur local. L’interface a été inspectée dans le navigateur en desktop et à 390 px, puis dans Electron.
 
 Le serveur écoute uniquement sur `127.0.0.1`, vérifie Host et Origin et exige un jeton pour les mutations. Il ne sert pas le dépôt comme répertoire statique. Les données restent locales avec la configuration par défaut ; un `host` distant ou un modèle cloud choisi explicitement change cette propriété.
 

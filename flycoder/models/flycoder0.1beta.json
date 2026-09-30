@@ -16,8 +16,7 @@
   "qwenFineTuned": false,
   "biologicalBrain": false,
   "sourceFiles": [
-    "js/constants.js",
-    "js/connectome.js"
+    "flybrain-graph.json"
   ],
   "evaluation": "../../docs/flycoder-evaluation.json"
 }

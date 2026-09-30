@@ -2,15 +2,7 @@ weights.txt
 extract_weights_to_json.py
 .vscode/
 node_modules/
-caretaker.log
-caretaker-decisions.log
 data/
-
-# Xcode
-ios/FlyBrain.xcodeproj/xcuserdata/
-ios/FlyBrain.xcodeproj/project.xcworkspace/xcuserdata/
-ios/build/
-DerivedData/
 
 # Local language training runtime and caches
 .venv/

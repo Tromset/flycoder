@@ -10,7 +10,7 @@ let toastTimer;
 function toast(message){$('toast').textContent=message;$('toast').classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('visible'),6500);}
 function action(fn){return async e=>{try{await fn(e);}catch(error){toast(error.message);}};}
 function view(name){state.view=name;document.querySelectorAll('.view').forEach(n=>n.classList.toggle('active',n.id==='view-'+name));document.querySelectorAll('.nav').forEach(n=>n.classList.toggle('active',n.dataset.view===name));if(name==='brain')drawBrain();}
-function busy(value){state.busy=value;$('send').disabled=value;$('train').disabled=value;$('evaluate').disabled=value;$('install-model').disabled=value;$('stop').hidden=!value;$('new-task').disabled=value;$('fly-state').textContent=value?'Au travail':'Au repos';window.flyScene?.setState(value?'working':'idle');}
+function busy(value){state.busy=value;$('send').disabled=value;$('train').disabled=value;$('evaluate').disabled=value;$('install-model').disabled=value;$('stop').hidden=!value;$('new-task').disabled=value;$('fly-state').textContent=value?'Au travail':'Au repos';}
 async function refresh(){
  const data=await api('/api/state');state.data=data;busy(data.busy);
  $('project').textContent=data.workspace.split('/').filter(Boolean).slice(-2).join(' / ');$('project').title=data.workspace;
@@ -95,7 +95,7 @@ stream.onmessage=async message=>{const e=JSON.parse(message.data);try{
  if(e.type==='agent'&&$('agent-'+e.role))$('agent-'+e.role).textContent=e.status==='working'?'Au travail':e.status==='limited'?'Budget atteint':'Terminé';
  if(e.type==='packet')renderPackets();if(e.type==='metrics')renderMetric(e);if(e.type==='check'){appendCheck(e);renderCheckStatus(e);}
  if(e.type==='error')toast(e.error);
- if(e.type==='finished'){if(state.run?.id===e.id){state.run=await api('/api/run?id='+encodeURIComponent(e.id));renderRun();}await refresh();if(e.status==='passed'){window.flyScene?.setState('reward');$('fly-caption').textContent='Ça passe. Ça s’apprend.';$('fly-description').textContent='Les vérifications ont réussi sur les fichiers finaux.';}else if(e.status==='error')$('fly-description').textContent='La mission a rencontré une erreur. Consultez le journal.';}
+ if(e.type==='finished'){if(state.run?.id===e.id){state.run=await api('/api/run?id='+encodeURIComponent(e.id));renderRun();}await refresh();if(e.status==='passed'){$('fly-caption').textContent='Ça passe. Ça s’apprend.';$('fly-description').textContent='Les vérifications ont réussi sur les fichiers finaux.';}else if(e.status==='error')$('fly-description').textContent='La mission a rencontré une erreur. Consultez le journal.';}
  if(e.type==='training_progress')$('training-progress').textContent=e.completed+'/'+e.total+' exercices terminés';
  if(e.type==='training_complete'){toast(e.report.passed+'/'+e.report.total+' exercices réussis.');await refresh();}
  if(e.type==='idle')await refresh();
