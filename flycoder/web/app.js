@@ -17,11 +17,18 @@ async function refresh(){
  $('model-name').textContent=data.model;$('context-size').textContent=data.numCtx.toLocaleString('fr-FR');
  $('model-status').classList.toggle('off',!data.ollama.installed);$('model-status').querySelector('span').textContent=data.ollama.installed?(data.model.startsWith('flycoder0.1beta')?'Qwen3.5':data.model)+' · '+(data.localInference?'local':'hôte distant'):data.ollama.available?'Modèle à installer':'Ollama indisponible';
  $('settings-json').textContent=JSON.stringify({workspace:data.workspace,model:data.model,numCtx:data.numCtx,execution:data.execution,checks:data.checks},null,2);
- document.querySelector('.companion-footnote').textContent=data.localInference?'Tout reste local. Les mesures viennent de vos exécutions.':'Le contexte est transmis à votre hôte d’inférence configuré.';renderHistory(data.runs);updateBrain(data.brain);renderTraining(data);
+ document.querySelector('.companion-footnote').textContent=data.localInference?'Tout reste local. Les mesures viennent de vos exécutions.':'Le contexte est transmis à votre hôte d’inférence configuré.';renderHistory(data.runs);renderStats(data);updateBrain(data.brain);renderTraining(data);
  if(data.activeId&&!state.run)await loadRun(data.activeId);
 }
 function renderHistory(runs){$('run-count').textContent=runs.length;$('history').replaceChildren();if(!runs.length)$('history').append(el('p','muted','Votre première mission apparaîtra ici.'));
  for(const r of runs){const b=el('button',r.status+(state.run?.id===r.id?' current':''),r.task);b.title=r.task+' — '+(labels[r.status]||r.status);b.onclick=action(()=>loadRun(r.id));$('history').append(b);}}
+function renderStats(data){const runs=data.runs,verified=runs.filter(r=>['passed','failed'].includes(r.status)),passed=runs.filter(r=>r.status==='passed').length,day=d=>d.slice(0,10),counts={};
+ for(const r of runs)if(r.at)counts[day(r.at)]=(counts[day(r.at)]||0)+1;
+ $('stat-runs').textContent=runs.length.toLocaleString('fr-FR');$('stat-passed').textContent=verified.length?passed+' / '+verified.length:'—';$('stat-days').textContent=Object.keys(counts).length;
+ $('stat-reward').textContent=(data.brain.totalReward>0?'+':'')+Number(data.brain.totalReward.toFixed(2));$('stat-episodes').textContent=data.brain.episodes;$('stat-model').textContent=data.model;$('stat-model').title=data.model;
+ const start=new Date();start.setHours(0,0,0,0);start.setDate(start.getDate()-start.getDay()-25*7);$('heat').replaceChildren();
+ for(let i=0;i<182;i++){const d=new Date(start);d.setDate(start.getDate()+i);const key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'),n=counts[key]||0,c=el('i',n?'l'+Math.min(4,n):null);c.title=key+' · '+n+' mission'+(n>1?'s':'');$('heat').append(c);}
+ $('stats-foot').textContent=data.localInference?'Qwen3.5 pour le code. FlyBrain pour orienter l’effort. Tout reste sur votre machine.':'Qwen3.5 pour le code. FlyBrain pour orienter l’effort.';}
 async function loadRun(id){state.run=await api('/api/run?id='+encodeURIComponent(id));renderRun();view('work');}
 function newTask(){state.run=null;$('welcome').hidden=false;$('run-content').hidden=true;$('task-title').replaceChildren(document.createTextNode('Un petit cerveau.'),el('br'),document.createTextNode('De grandes idées à coder.'));$('run-state').textContent='Prête à apprendre';$('run-state').className='state-badge';$('prompt').value='';view('work');$('prompt').focus();renderPackets();}
 function renderRun(){const r=state.run;if(!r)return;$('welcome').hidden=true;$('run-content').hidden=false;$('task-title').textContent=r.task.length>110?r.task.slice(0,107)+'…':r.task;$('task-title').title=r.task;$('run-state').textContent=labels[r.status]||r.status;$('run-state').className='state-badge '+r.status;
@@ -39,7 +46,7 @@ function renderRun(){const r=state.run;if(!r)return;$('welcome').hidden=true;$('
  const metric=r.events?.filter(e=>e.type==='metrics').at(-1);if(metric)renderMetric(metric);
  const check=r.checks?.at(-1);if(check)renderCheckStatus(check);
 }
-function appendConversation(e){if(e.type==='message'){const m=el('article','message');m.append(el('div','message-header',roles[e.role]||e.role));m.append(el('pre',null,e.content));$('conversation').append(m);}
+function appendConversation(e){if(e.type==='message'){const m=el('article','message '+e.role);m.append(el('div','message-header',roles[e.role]||e.role));m.append(el('pre',null,e.content));$('conversation').append(m);}
  if(e.type==='tool_result')$('conversation').append(el('div','tool-row'+(!e.result.ok?' error':''),(e.result.ok?'✓ ':'✗ ')+e.call.function.name+' · '+e.result.content.slice(0,180)));}
 function appendCheck(c){const d=el('article','check-row'+(!c.ok?' failed':''));d.append(el('h3',null,(c.ok?'✓ ':'✗ ')+c.name+' · '+c.durationMs+' ms · '+c.execution));d.append(el('pre',null,c.output||`Code de sortie : ${c.exitCode}`));$('checks').append(d);}
 function renderCheckStatus(c){$('check-status').replaceChildren();$('check-status').append(el('span','check-icon',c.ok?'✓':'×'));const d=el('div');d.append(el('strong',null,c.ok?'Dernier test réussi':'Dernier test en échec'));d.append(el('p',null,c.name+' · '+c.durationMs+' ms'));$('check-status').append(d);}
