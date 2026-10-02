@@ -1,7 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import http from 'node:http';
 import { PROBLEMS } from '../bench/problems.mjs';
-import { extractCode, runTest, summarize, instruction } from '../bench/bench.mjs';
+import { extractCode, runTest, summarize, instruction, chat } from '../bench/bench.mjs';
 
 test('problem ids are unique and every problem is complete', () => {
   assert.equal(new Set(PROBLEMS.map(p => p.id)).size, PROBLEMS.length);
@@ -43,4 +44,22 @@ test('a hanging solution is killed by the timeout', async () => {
   const p = PROBLEMS.find(x => x.language === 'python');
   const result = await runTest(p, `import time\ndef ${p.entry}(*a):\n    time.sleep(60)\n${p.entry}()\n`, { timeoutMs: 500 });
   assert.equal(result.ok, false); assert.equal(result.timedOut, true);
+});
+
+test('chat reassembles a streamed answer split across chunks and reports Ollama errors', async t => {
+  let mode = 'ok';
+  const server = http.createServer(async (req, res) => {
+    let raw = ''; for await (const c of req) raw += c;
+    assert.equal(JSON.parse(raw).stream, true);
+    if (mode === 'error') { res.writeHead(404, { 'content-type': 'application/json' }); return res.end('{"error":"model not found"}'); }
+    res.writeHead(200, { 'content-type': 'application/x-ndjson' });
+    const lines = [{ message: { thinking: 'plan ' } }, { message: { content: '```py' } }, { message: { content: 'thon\nx = 1\n```' } },
+      { message: { content: '' }, done: true, done_reason: 'stop', eval_count: 3, eval_duration: 1e9 }].map(l => JSON.stringify(l) + '\n').join('');
+    res.write(lines.slice(0, 25)); setTimeout(() => res.end(lines.slice(25)), 20);
+  });
+  await new Promise(r => server.listen(0, '127.0.0.1', r)); t.after(() => new Promise(r => server.close(r)));
+  const host = `http://127.0.0.1:${server.address().port}`;
+  const data = await chat(host, { model: 'm', messages: [] });
+  assert.equal(data.message.content, '```python\nx = 1\n```'); assert.equal(data.message.thinking, 'plan '); assert.equal(data.eval_count, 3);
+  mode = 'error'; await assert.rejects(chat(host, { model: 'm', messages: [] }), /404: model not found/);
 });

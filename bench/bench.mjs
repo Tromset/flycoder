@@ -76,10 +76,38 @@ export function instruction(problem) {
   return `${problem.prompt}\n\n${format}`;
 }
 
-export async function solve(host, model, problem, { think, seed, maxTokens }) {
+// Streams the answer: a non-streamed request sends nothing until it is done, and
+// fetch gives up waiting for response headers after 5 minutes (long thinking, slow machines).
+export async function chat(host, body, timeoutMs = 3600000) {
+  const response = await fetch(host.replace(/\/$/, '') + '/api/chat', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ ...body, stream: true }), signal: AbortSignal.timeout(timeoutMs) });
+  if (!response.ok) {
+    const text = await response.text();
+    let message = text; try { message = JSON.parse(text).error || text; } catch {}
+    throw new Error(`Ollama ${response.status}: ${message.slice(0, 300)}`);
+  }
+  let content = '', thinking = '', last = {}, buffer = '';
+  const decoder = new TextDecoder();
+  const read = line => {
+    if (!line.trim()) return;
+    const event = JSON.parse(line);
+    if (event.error) throw new Error(`Ollama: ${event.error}`);
+    content += event.message?.content || ''; thinking += event.message?.thinking || '';
+    if (event.done) last = event;
+  };
+  for await (const chunk of response.body) {
+    buffer += decoder.decode(chunk, { stream: true });
+    const lines = buffer.split('\n'); buffer = lines.pop();
+    lines.forEach(read);
+  }
+  read(buffer + decoder.decode());
+  if (!last.done) throw new Error('Ollama: incomplete response');
+  return { ...last, message: { content, thinking } };
+}
+
+export async function solve(host, model, problem, { think, seed, maxTokens, numCtx }) {
   const started = Date.now();
-  const data = await ollama(host, '/api/chat', { model, stream: false, messages: [{ role: 'user', content: instruction(problem) }],
-    ...(think === undefined ? {} : { think }), options: { seed, num_predict: maxTokens } });
+  const data = await chat(host, { model, messages: [{ role: 'user', content: instruction(problem) }],
+    ...(think === undefined ? {} : { think }), options: { seed, num_predict: maxTokens, ...(numCtx ? { num_ctx: numCtx } : {}) } });
   const content = data.message?.content || '';
   return { content, truncated: data.done_reason === 'length', wallMs: Date.now() - started, loadMs: Math.round((data.load_duration || 0) / 1e6),
     outputTokens: data.eval_count || 0, decodeMs: (data.eval_duration || 0) / 1e6, promptTokens: data.prompt_eval_count || 0, prefillMs: (data.prompt_eval_duration || 0) / 1e6,
@@ -106,18 +134,19 @@ async function main() {
   const { values } = parseArgs({ options: {
     models: { type: 'string', default: 'flycoder:0.2-beta,flycoder:0.2-beta-fast' }, host: { type: 'string', default: process.env.OLLAMA_HOST ? `http://${process.env.OLLAMA_HOST.replace(/^https?:\/\//, '')}` : 'http://127.0.0.1:11434' },
     think: { type: 'string', default: 'default' }, samples: { type: 'string', default: '1' }, only: { type: 'string' },
-    'max-tokens': { type: 'string', default: '8192' }, out: { type: 'string' }, 'no-sandbox': { type: 'boolean' }, help: { type: 'boolean', short: 'h' } } });
-  if (values.help) return console.log('node bench/bench.mjs --models a,b [--think on|off|default] [--samples n] [--only id,id] [--max-tokens n] [--out file.json] [--no-sandbox]');
+    'max-tokens': { type: 'string', default: '8192' }, 'num-ctx': { type: 'string' }, out: { type: 'string' }, 'no-sandbox': { type: 'boolean' }, help: { type: 'boolean', short: 'h' } } });
+  if (values.help) return console.log('node bench/bench.mjs --models a,b [--think on|off|default] [--samples n] [--only id,id] [--max-tokens n] [--num-ctx n] [--out file.json] [--no-sandbox]');
   const think = { on: true, off: false, default: undefined }[values.think];
   if (!(values.think in { on: 1, off: 1, default: 1 })) throw new Error('--think must be on, off or default');
-  const samples = Number(values.samples), maxTokens = Number(values['max-tokens']);
+  // --num-ctx overrides the model's context for machines short on memory; it does not change answers to these short prompts.
+  const samples = Number(values.samples), maxTokens = Number(values['max-tokens']), numCtx = values['num-ctx'] ? Number(values['num-ctx']) : undefined;
   const only = values.only ? new Set(values.only.split(',')) : null;
   const problems = PROBLEMS.filter(p => !only || only.has(p.id));
   const sandbox = !values['no-sandbox'];
   const preflight = await runTest(problems[0], problems[0].reference, { sandbox });
   if (!preflight.ok) throw new Error(`Reference solution failed in the test runner (${preflight.output.slice(0, 300)}). Check python3/node, or retry with --no-sandbox.`);
 
-  const report = { at: new Date().toISOString(), host: values.host, think: values.think, samples, maxTokens, platform: `${os.platform()} ${os.arch()} ${os.cpus()[0]?.model || ''}`.trim(), memoryGiB: Math.round(os.totalmem() / 2 ** 30), models: [] };
+  const report = { at: new Date().toISOString(), host: values.host, think: values.think, samples, maxTokens, numCtx: numCtx ?? 'model default', platform: `${os.platform()} ${os.arch()} ${os.cpus()[0]?.model || ''}`.trim(), memoryGiB: Math.round(os.totalmem() / 2 ** 30), models: [] };
   const out = values.out || path.join(path.dirname(fileURLToPath(import.meta.url)), 'results', `${report.at.replace(/[:.]/g, '-')}.json`);
   fs.mkdirSync(path.dirname(out), { recursive: true });
   // Saved after every answer, so an interrupted run keeps its measurements.
@@ -129,9 +158,9 @@ async function main() {
     for (const problem of problems) for (let i = 0; i < samples; i++) {
       process.stderr.write(`${model} · ${problem.id}${samples > 1 ? ` #${i + 1}` : ''} … `);
       try {
-        const ask = () => solve(values.host, model, problem, { think, seed: 1000 + i, maxTokens });
-        // A failed model load is retried once with all models unloaded; it is not an answer.
-        const answer = await ask().catch(async error => { if (!/llama-server|load|memory/i.test(error.message)) throw error; await unloadAll(values.host); return ask(); });
+        const ask = () => solve(values.host, model, problem, { think, seed: 1000 + i, maxTokens, numCtx });
+        // A crashed or failed model load is retried once with all models unloaded; it is not an answer.
+        const answer = await ask().catch(async error => { if (!/llama-server|runner|resource|load|memory|fetch failed/i.test(error.message)) throw error; await unloadAll(values.host); return ask(); });
         const outcome = answer.truncated ? { ok: false, output: 'truncated by max tokens' } : await runTest(problem, extractCode(answer.content, problem.language, problem.entry), { sandbox });
         const { content, ...metrics } = answer;
         results.push({ problem: problem.id, sample: i, ok: outcome.ok, error: outcome.ok ? null : outcome.output.slice(-600), ...metrics, answer: content });
