@@ -8,5 +8,7 @@ data/
 .venv/
 __pycache__/
 .references/
-.flycoder/
 dist/
+
+# Local FlyCoder bench runs (reference runs live in docs/bench/)
+bench/results/

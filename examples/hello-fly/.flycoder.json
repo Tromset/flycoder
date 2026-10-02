@@ -1,1 +1,0 @@
-{"model":"flycoder0.1beta","team":true,"checks":{"test":["node","--test","slug.test.cjs"]}}

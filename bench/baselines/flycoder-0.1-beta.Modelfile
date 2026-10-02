@@ -1,3 +1,4 @@
+# FlyCoder 0.1 beta profile, kept unchanged to measure 0.2 against it: ollama create flycoder0.1beta -f bench/baselines/flycoder-0.1-beta.Modelfile
 FROM qwen3.5:4b
 PARAMETER num_ctx 16384
 PARAMETER temperature 0.2
