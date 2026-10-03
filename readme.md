@@ -1,161 +1,161 @@
 # FlyCoder 0.3 beta
 
-FlyCoder est un modèle de code local pour Ollama, réglé pour les MacBook et Mac mini Apple Silicon. Vous l'utilisez directement avec `ollama run`, ou dans n'importe quel outil compatible Ollama. Depuis la 0.3, le routeur facultatif **FlyBrain** n'active que la partie de FlyCoder dont une demande a besoin, ce qui baisse la mémoire utilisée (voir plus bas).
+FlyCoder is a local coding model for Ollama, tuned for Apple Silicon MacBooks and Mac minis. Use it directly with `ollama run`, or from any Ollama-compatible tool. Since 0.3, the optional **FlyBrain** router only activates the part of FlyCoder a request needs, which lowers memory use (see below).
 
-Documentation complète (installation, utilisation, API, réglages, banc d'essai, publication, dépannage) : [Documentation.md](Documentation.md).
+Full documentation (installation, usage, API, settings, benchmark, publishing, troubleshooting): [Documentation.md](Documentation.md).
 
-## Installer en une commande
+## One-command install
 
-Il faut [Ollama](https://ollama.com/download) 0.31 ou plus récent, ouvert. FlyCoder est publié sur [ollama.com/delairvictor9/flycoder](https://ollama.com/delairvictor9/flycoder) :
+You need [Ollama](https://ollama.com/download) 0.31 or later, running. FlyCoder is published at [ollama.com/delairvictor9/flycoder](https://ollama.com/delairvictor9/flycoder):
 
 ```sh
-ollama run delairvictor9/flycoder        # Gemma 4 12B, Mac 16 Go et plus
-ollama run delairvictor9/flycoder:fast   # Qwen3.5 4B, Mac 8 Go
+ollama run delairvictor9/flycoder        # Gemma 4 12B, Macs with 16 GB or more
+ollama run delairvictor9/flycoder:fast   # Qwen3.5 4B, 8 GB Macs
 ```
 
-Ou, pour l'installer sous le nom court `flycoder` avec la variante choisie selon la mémoire du Mac :
+Or, to install it under the short name `flycoder`, with the variant picked from your Mac's memory:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/Tromset/flycoder/main/install.sh | sh
 ollama run flycoder
 ```
 
-L'installateur détecte la mémoire du Mac et construit la bonne variante dans votre Ollama local : `flycoder:0.2-beta` à partir de 16 Go, `flycoder:0.2-beta-fast` en dessous. Dans les deux cas, `ollama run flycoder` fonctionne. Options : `sh -s -- --fast` (variante rapide), `sh -s -- --all` (les deux), `sh -s -- --gguf` (poids GGUF pour Mac Intel, Linux ou Windows).
+The installer detects your Mac's memory and builds the right variant in your local Ollama: `flycoder:0.2-beta` from 16 GB up, `flycoder:0.2-beta-fast` below that. Either way, `ollama run flycoder` works. Options: `sh -s -- --fast` (fast variant), `sh -s -- --all` (both), `sh -s -- --gguf` (GGUF weights for Intel Macs, Linux or Windows).
 
-## Les deux variantes
+## The two variants
 
-| Tag | Base | Poids | Mac conseillé | Contexte |
+| Tag | Base | Weights | Recommended Mac | Context |
 |---|---|---|---|---|
-| `flycoder:0.2-beta` (`latest`) | Gemma 4 12B, Google DeepMind | 7,7 Go, NVFP4 sur MLX | 16 Go et plus | 32 768 tokens |
-| `flycoder:0.2-beta-fast` (`fast`) | Qwen3.5 4B, Alibaba Qwen | 4,0 Go, NVFP4 sur MLX | 8 Go et plus | 16 384 tokens |
+| `flycoder:0.2-beta` (`latest`) | Gemma 4 12B, Google DeepMind | 7.7 GB, NVFP4 on MLX | 16 GB or more | 32,768 tokens |
+| `flycoder:0.2-beta-fast` (`fast`) | Qwen3.5 4B, Alibaba Qwen | 4.0 GB, NVFP4 on MLX | 8 GB or more | 16,384 tokens |
 
-Les deux bases sont sous licence Apache 2.0 et gèrent les outils (tool calling), la réflexion (thinking) et les images.
+Both bases are licensed under Apache 2.0 and support tool calling, thinking and images.
 
-## FlyBrain : moins de RAM, même qualité sur les demandes difficiles
+## FlyBrain: less RAM, same quality on hard requests
 
-FlyBrain s'inspire du cerveau de la mouche : de petits indices tirés de la demande (comme les cellules de Kenyon du corps pédonculé) suffisent à trancher les cas nets. Quand rien n'est net, un micro-modèle de 0,8 milliard de paramètres décide. Un seul « lobe » expert est ensuite chargé en mémoire.
+FlyBrain takes its cue from the fly's brain: small hints drawn from the request (like the Kenyon cells of the mushroom body) are enough to settle the clear cases. When nothing is clear, a 0.8-billion-parameter micro-model decides. Only one expert "lobe" is then loaded into memory.
 
-| Vous appelez | Demande simple | Demande difficile, outils (agents) ou long contexte | Demande ambiguë |
+| You call | Simple request | Hard request, tools (agents) or long context | Unclear request |
 |---|---|---|---|
-| `flycoder` | Qwen3.5 4B, avec réflexion | Gemma 4 12B, avec réflexion | le micro-modèle `flycoder:router` (Qwen3.5 0.8B) choisit |
-| `flycoder:fast` | `flycoder:0.2-beta-lite` (Qwen3.5 2B) | Qwen3.5 4B | Qwen3.5 4B (pas de micro-modèle) |
+| `flycoder` | Qwen3.5 4B, with thinking | Gemma 4 12B, with thinking | the `flycoder:router` micro-model (Qwen3.5 0.8B) decides |
+| `flycoder:fast` | `flycoder:0.2-beta-lite` (Qwen3.5 2B) | Qwen3.5 4B | Qwen3.5 4B (no micro-model) |
 
-Mémoire mesurée (mémoire résidente des processus du modèle après une réponse, serveur Linux 16 Go sans GPU, poids GGUF ; sur Mac avec MLX, les valeurs absolues diffèrent) :
+Measured memory (resident memory of the model processes after one answer, 16 GB Linux server without a GPU, GGUF weights; on a Mac with MLX the absolute values differ):
 
-| Cas | Sans FlyBrain | Avec FlyBrain |
+| Case | Without FlyBrain | With FlyBrain |
 |---|---|---|
-| `flycoder`, demande simple | 10,5 Gio | **6,1 Gio** (4B + micro-modèle) |
-| `flycoder`, demande difficile | 10,5 Gio | 10,5 Gio (identique : la qualité est gardée) |
-| `flycoder:fast`, demande simple | 4,6 Gio | **3,7 Gio** |
-| `flycoder:fast`, demande difficile | 4,6 Gio | 4,6 Gio |
+| `flycoder`, simple request | 10.5 GiB | **6.1 GiB** (4B + micro-model) |
+| `flycoder`, hard request | 10.5 GiB | 10.5 GiB (unchanged: quality is kept) |
+| `flycoder:fast`, simple request | 4.6 GiB | **3.7 GiB** |
+| `flycoder:fast`, hard request | 4.6 GiB | 4.6 GiB |
 
-Le routeur se trompe rarement : sur 60 demandes étiquetées (les 20 exercices du banc et 40 demandes écrites pour l'occasion dans [tests/fixtures/route-prompts.json](tests/fixtures/route-prompts.json)), il en aiguille 59 correctement. Aucune demande difficile n'est partie vers le petit modèle ; une question git simple est partie vers le gros. Les règles décident seules 39 fois ; le micro-modèle répond en 0,6 s environ (médiane, sur processeur). Si le micro-modèle échoue ou hésite, la demande part vers le gros modèle. Une conversation garde son expert, et ne peut que monter vers le plus fort. Sous 16 Go de mémoire, FlyBrain plafonne `flycoder` au 4B.
+The router is rarely wrong: out of 60 labelled requests (the 20 bench problems plus 40 requests written for the purpose in [tests/fixtures/route-prompts.json](tests/fixtures/route-prompts.json)), it routes 59 correctly. No hard request went to the small model; one simple git question went to the large one. The rules decide on their own 39 times; the micro-model answers in about 0.6 s (median, on CPU). If the micro-model fails or hesitates, the request goes to the large model. A conversation keeps its expert and can only move up to the stronger one. Below 16 GB of memory, FlyBrain caps `flycoder` at the 4B.
 
 ```sh
-node ~/.flycoder/brain/flybrain.mjs        # installé par install.sh ; ou : npm run brain depuis ce dépôt
+node ~/.flycoder/brain/flybrain.mjs        # installed by install.sh; or: npm run brain from this repository
 OLLAMA_HOST=127.0.0.1:11435 ollama run flycoder
 ```
 
-FlyBrain parle l'API d'Ollama sur le port 11435 et laisse passer tous les autres modèles. Pour un agent de code, pointez-le sur FlyBrain plutôt que sur Ollama :
+FlyBrain speaks the Ollama API on port 11435 and passes every other model through. For a coding agent, point it at FlyBrain instead of Ollama:
 
 ```sh
 ANTHROPIC_BASE_URL=http://127.0.0.1:11435 ANTHROPIC_AUTH_TOKEN=ollama ANTHROPIC_API_KEY="" claude --model flycoder   # Claude Code
-# Codex, OpenCode, Cline… : URL compatible OpenAI http://127.0.0.1:11435/v1, modèle flycoder
+# Codex, OpenCode, Cline…: OpenAI-compatible URL http://127.0.0.1:11435/v1, model flycoder
 ```
 
-Avec les modèles publiés sur ollama.com plutôt qu'installés par `install.sh` : `ollama pull delairvictor9/flycoder:router` (et `:0.2-beta-lite`, `:0.2-beta-fast`, `:0.2-beta`), puis `node brain/flybrain.mjs --prefix delairvictor9/`.
+With the models published on ollama.com rather than installed by `install.sh`: `ollama pull delairvictor9/flycoder:router` (and `:0.2-beta-lite`, `:0.2-beta-fast`, `:0.2-beta`), then `node brain/flybrain.mjs --prefix delairvictor9/`.
 
-## Ce qui change par rapport à la 0.1
+## What changed since 0.1
 
-**Un modèle de base nettement plus fort.** La 0.1 reposait sur Qwen3.5 4B. Sur LiveCodeBench v6, chiffres publiés par les auteurs en mode réflexion, Gemma 4 12B obtient 72,0 % contre 55,8 % pour Qwen3.5 4B (et 65,6 % pour Qwen3.5 9B, qui serait deux fois plus lent). Son Elo Codeforces publié est de 1659.
+**A much stronger base model.** 0.1 was built on Qwen3.5 4B. On LiveCodeBench v6, using the figures published by the authors in thinking mode, Gemma 4 12B scores 72.0% against 55.8% for Qwen3.5 4B (and 65.6% for Qwen3.5 9B, which would be twice as slow). Its published Codeforces Elo is 1659.
 
-**La prédiction multi-tokens limite le coût des 12 milliards de paramètres.** Gemma 4 embarque un petit modèle brouillon qui propose plusieurs tokens d'avance ; le modèle principal les vérifie en une seule passe. Mesuré ici sur 14 réponses de code : 77 % des 6 594 tokens proposés acceptés, 3,35 tokens validés par passe, et une génération 49 % plus rapide qu'avec le brouillon désactivé (2,7 → 4,1 tokens/s sur le même exemple). Ollama annonce environ +90 % sur Apple Silicon.
+**Multi-token prediction keeps the cost of 12 billion parameters in check.** Gemma 4 ships a small draft model that proposes several tokens ahead; the main model verifies them in a single pass. Measured here over 14 coding answers: 77% of the 6,594 proposed tokens accepted, 3.35 tokens validated per pass, and generation 49% faster than with the draft disabled (2.7 → 4.1 tokens/s on the same example). Ollama reports about +90% on Apple Silicon.
 
-**Le moteur MLX d'Apple Silicon.** Les deux variantes utilisent les poids NVFP4 du moteur MLX d'Ollama. Selon Ollama, ce format génère environ 20 % plus vite que le Q4_K_M de la 0.1 et divise à peu près par deux la perte de qualité due à la quantification.
+**Apple Silicon's MLX engine.** Both variants use NVFP4 weights on Ollama's MLX engine. According to Ollama, this format generates about 20% faster than 0.1's Q4_K_M and roughly halves the quality loss from quantization.
 
-**Des réglages corrigés.** La 0.1 tournait à une température de 0,2, ce que Qwen déconseille (risque de répétitions sans fin et baisse de qualité). La 0.2 applique les réglages officiels : ceux de Google pour Gemma 4, ceux de Qwen pour le code en mode réflexion.
+**Fixed settings.** 0.1 ran at a temperature of 0.2, which Qwen advises against (risk of endless repetition and lower quality). 0.2 applies the official settings: Google's for Gemma 4, Qwen's for coding in thinking mode.
 
-**Assez de contexte pour du vrai code.** Sans réglage, Ollama limite à 4 096 tokens les machines de moins de 24 Go. FlyCoder fixe 32 768 tokens (variante principale) et 16 384 (variante rapide).
+**Enough context for real code.** Out of the box, Ollama limits machines with less than 24 GB to 4,096 tokens. FlyCoder sets 32,768 tokens (main variant) and 16,384 (fast variant).
 
-**Une consigne système dédiée au code**, courte : respecter exactement les noms et signatures demandés, livrer du code complet sans « TODO », traiter les cas limites, ne pas inventer d'API, ne jamais prétendre avoir exécuté des tests, éviter les failles classiques, répondre dans la langue de l'utilisateur.
+**A short system prompt dedicated to code**: keep the requested names and signatures exactly, deliver complete code without "TODO", handle edge cases, never invent APIs, never claim to have run tests, avoid common vulnerabilities, answer in the user's language.
 
-## Vitesse et qualité mesurées
+## Measured speed and quality
 
-Le banc d'essai `bench/` contient 20 exercices de code (13 en Python, 7 en JavaScript) avec tests cachés : intervalles, chiffres romains stricts, tri topologique, cache LRU, SemVer, CSV, Dijkstra sur 100 000 arêtes, évaluateur d'expressions, joker `*`/`?` résistant aux cas pathologiques, etc. Chaque test est validé par une solution de référence et rejette une solution vide (`npm test`).
+The `bench/` benchmark holds 20 coding problems (13 in Python, 7 in JavaScript) with hidden tests: intervals, strict Roman numerals, topological sort, LRU cache, SemVer, CSV, Dijkstra on 100,000 edges, expression evaluator, `*`/`?` wildcard matching that withstands pathological cases, and more. Each test is validated against a reference solution and rejects an empty solution (`npm test`).
 
-Passage enregistré dans [docs/bench/cpu-nothink.json](docs/bench/cpu-nothink.json), sur un serveur Linux à 4 cœurs **sans GPU** (Ollama 0.35, poids GGUF Q4_K_M, réflexion désactivée comme dans l'ancien atelier, un essai par exercice, 2 048 tokens maximum). Les vitesses absolues sont bien plus basses que sur un Mac ; seules les comparaisons entre profils comptent :
+Run recorded in [docs/bench/cpu-nothink.json](docs/bench/cpu-nothink.json), on a 4-core Linux server **without a GPU** (Ollama 0.35, GGUF Q4_K_M weights, thinking disabled as in the former workshop, one attempt per problem, 2,048 tokens maximum). Absolute speeds are much lower than on a Mac; only the comparisons between profiles matter:
 
-| Profil | Base | Exercices réussis | Génération | Tokens par réponse | Temps par exercice |
+| Profile | Base | Problems solved | Generation | Tokens per answer | Time per problem |
 |---|---|---|---|---|---|
-| `flycoder0.1beta` (0.1) | Qwen3.5 4B, température 0,2 | 5/20 (25 %) | 6,6 tok/s | 581 | 94 s |
-| `flycoder:0.2-beta-fast` | Qwen3.5 4B, réglages Qwen | 5/20 (25 %) | 6,5 tok/s | 537 | 89 s |
-| `flycoder:0.2-beta` | Gemma 4 12B, multi-tokens | **14/20 (70 %)** | 3,4 tok/s | 739 | 235 s |
+| `flycoder0.1beta` (0.1) | Qwen3.5 4B, temperature 0.2 | 5/20 (25%) | 6.6 tok/s | 581 | 94 s |
+| `flycoder:0.2-beta-fast` | Qwen3.5 4B, Qwen settings | 5/20 (25%) | 6.5 tok/s | 537 | 89 s |
+| `flycoder:0.2-beta` | Gemma 4 12B, multi-token | **14/20 (70%)** | 3.4 tok/s | 739 | 235 s |
 
-Ce que ces chiffres disent :
+What these numbers say:
 
-- **La variante principale résout presque trois fois plus d'exercices** que la 0.1 : 14 contre 5, dont l'évaluateur d'expressions, le parseur CSV, le cache LRU, les chiffres romains stricts et l'écriture des nombres en toutes lettres, tous ratés par la 0.1.
-- **Elle est plus lente par exercice sur ce serveur** : environ 2,5 fois le temps de la 0.1, car elle écrit un code plus complet (validations, docstrings) et chaque token coûte plus cher sur processeur. Sur Mac, le moteur MLX et le gain multi-tokens, plus fort sur GPU, devraient réduire cet écart ; ce n'est pas encore mesuré.
-- **La variante rapide garde exactement la vitesse de la 0.1** (6,5 contre 6,6 tokens/s, 89 contre 94 s par exercice) avec le même taux de réussite sans réflexion, et 8 % de tokens en moins. Sur Mac, elle gagne en plus le moteur MLX.
+- **The main variant solves almost three times as many problems** as 0.1: 14 against 5, including the expression evaluator, the CSV parser, the LRU cache, strict Roman numerals and spelling numbers out in words, all failed by 0.1.
+- **It is slower per problem on this server**: about 2.5 times 0.1's time, because it writes more complete code (validation, docstrings) and each token costs more on CPU. On a Mac, the MLX engine and the multi-token gain, which is larger on GPU, should narrow that gap; this is not measured yet.
+- **The fast variant keeps exactly 0.1's speed** (6.5 against 6.6 tokens/s, 89 against 94 s per problem) with the same pass rate without thinking, and 8% fewer tokens. On a Mac, it also gains the MLX engine.
 
-Sept exercices de la variante principale et un de la variante rapide ont été relancés : au premier passage, le serveur avait manqué de mémoire ou le banc avait coupé la requête après 5 minutes. Ce sont des pannes d'infrastructure, pas des réponses ; le banc envoie désormais les réponses en flux continu et relance une fois un modèle qui plante.
+Seven problems for the main variant and one for the fast variant were rerun: on the first pass, the server had run out of memory or the bench had cut the request after 5 minutes. These were infrastructure failures, not answers; the bench now streams answers and retries a crashed model once.
 
-Pour mesurer sur votre Mac :
+To measure on your Mac:
 
 ```sh
-ollama create flycoder0.1beta -f bench/baselines/flycoder-0.1-beta.Modelfile   # pour comparer à la 0.1
+ollama create flycoder0.1beta -f bench/baselines/flycoder-0.1-beta.Modelfile   # to compare with 0.1
 npm run bench -- --models flycoder0.1beta,flycoder:0.2-beta,flycoder:0.2-beta-fast
 ```
 
-Le banc exécute le code produit par les modèles sur votre machine, dans un dossier temporaire, avec un délai limite ; sur macOS, `sandbox-exec` lui interdit le réseau et l'écriture hors de ce dossier. Options utiles : `--think on|off`, `--samples 3`, `--only py-lcs,js-evaluate`.
+The bench runs the code the models produce on your machine, in a temporary folder, with a time limit; on macOS, `sandbox-exec` blocks network access and writes outside that folder. Useful options: `--think on|off`, `--samples 3`, `--only py-lcs,js-evaluate`.
 
-## Utilisation
-
-```sh
-ollama run flycoder                      # réflexion activée par défaut : meilleure qualité
-ollama run flycoder --think=false        # réponse immédiate, pour les questions simples
-ollama run flycoder:fast                 # variante 4B si vous l'avez installée
-```
-
-Dans une conversation, `/set nothink` coupe la réflexion et `/set parameter num_ctx 65536` agrandit le contexte (environ 0,5 Go de mémoire en plus pour la variante principale). Ollama recommande au moins 64 000 tokens pour les agents de code ; FlyCoder fonctionne aussi avec `ollama launch` (Claude Code, Codex, OpenCode) : `ollama launch claude --model flycoder` si vous l'avez installé avec `install.sh`, ou `ollama launch claude --model delairvictor9/flycoder` depuis ollama.com. `ollama launch` parle directement à Ollama ; pour passer par FlyBrain, voir la section FlyBrain.
-
-Depuis une application, l'API d'Ollama suffit :
+## Usage
 
 ```sh
-curl http://localhost:11434/api/chat -d '{"model":"flycoder","messages":[{"role":"user","content":"Écris une fonction Python qui fusionne des intervalles."}]}'
+ollama run flycoder                      # thinking on by default: best quality
+ollama run flycoder --think=false        # immediate answer, for simple questions
+ollama run flycoder:fast                 # 4B variant if you installed it
 ```
 
-## Publier FlyCoder sur ollama.com
+In a conversation, `/set nothink` turns thinking off and `/set parameter num_ctx 65536` enlarges the context (about 0.5 GB of extra memory for the main variant). Ollama recommends at least 64,000 tokens for coding agents; FlyCoder also works with `ollama launch` (Claude Code, Codex, OpenCode): `ollama launch claude --model flycoder` if you installed it with `install.sh`, or `ollama launch claude --model delairvictor9/flycoder` from ollama.com. `ollama launch` talks to Ollama directly; to go through FlyBrain, see the FlyBrain section.
 
-À faire une seule fois, depuis un Mac Apple Silicon :
+From an application, the Ollama API is all you need:
 
-1. Créez un compte sur [ollama.com](https://ollama.com/signup). Le nom d'utilisateur fera partie du nom du modèle.
-2. Reliez ce Mac au compte : `ollama signin`.
-3. Construisez les deux variantes : `sh install.sh --all`.
-4. Publiez : `sh scripts/publish.sh <utilisateur>` (ajoutez `--gguf` pour publier aussi les versions Mac Intel, Linux et Windows).
-5. Collez le texte de [docs/ollama-model-page.md](docs/ollama-model-page.md) dans la description de la page du modèle.
+```sh
+curl http://localhost:11434/api/chat -d '{"model":"flycoder","messages":[{"role":"user","content":"Write a Python function that merges intervals."}]}'
+```
 
-Ensuite, n'importe qui peut lancer `ollama run <utilisateur>/flycoder` ou `ollama run <utilisateur>/flycoder:fast`. La 0.2 beta est publiée sous `delairvictor9`.
+## Publishing FlyCoder on ollama.com
 
-## Contenu du dépôt
+Done once, from an Apple Silicon Mac:
 
-- `Modelfile`, `Modelfile.fast` : définitions des deux variantes (`ollama create flycoder -f Modelfile`).
-- `Modelfile.lite`, `Modelfile.router` : expert 2B et micro-modèle de FlyBrain.
-- `brain/` : le serveur FlyBrain (`flybrain.mjs`), ses règles (`router.mjs`) et la mesure de justesse du routeur (`eval-router.mjs`).
-- `install.sh` : installation en une commande. `scripts/publish.sh` : publication sur ollama.com.
-- `bench/` : banc d'essai qualité et vitesse ; `bench/baselines/` garde le profil 0.1 pour comparer.
-- `tests/` : `npm test` vérifie les tests du banc, la cohérence des Modelfiles et des scripts.
-- `training/`, `scripts/build_language_dataset.js`, `server/fly-language.js` : pipeline QLoRA de l'ancienne voix FlyBrain (Qwen 2.5 1.5B, MLX), indépendant de FlyCoder.
+1. Create an account on [ollama.com](https://ollama.com/signup). The username becomes part of the model name.
+2. Link this Mac to the account: `ollama signin`.
+3. Build both variants: `sh install.sh --all`.
+4. Publish: `sh scripts/publish.sh <username>` (add `--gguf` to also publish the Intel Mac, Linux and Windows builds).
+5. Paste the text of [docs/ollama-model-page.md](docs/ollama-model-page.md) into the model page description.
 
-## Limites de cette beta
+After that, anyone can run `ollama run <username>/flycoder` or `ollama run <username>/flycoder:fast`. 0.2 beta is published under `delairvictor9`.
 
-- Les poids ne sont pas réentraînés : FlyCoder 0.2 est un profil Ollama (base, quantification, réglages, contexte, consigne système). Les gains de qualité viennent du changement de base et des réglages, pas d'un fine-tuning.
-- Les chiffres LiveCodeBench et Codeforces sont ceux publiés par Google et Qwen, pas des mesures FlyCoder. Le banc fourni est petit (20 exercices) : il départage des profils, il ne remplace pas un benchmark public.
-- La vitesse sur Mac n'a pas été mesurée pour cette version : les gains MLX et multi-tokens cités sont ceux annoncés par Ollama. Sur processeur, la variante principale est environ 2,5 fois plus lente par exercice que la 0.1 ; si l'écart reste trop grand sur votre Mac, `ollama cp flycoder:0.2-beta-fast flycoder:latest` fait de la variante rapide le modèle par défaut.
-- Sans réflexion, les trois profils laissent parfois une première tentative abandonnée dans le code rendu (3 réponses sur 20 chacun) : gardez la réflexion activée pour du code à livrer.
-- Le banc a tourné sans réflexion. Avec la réflexion activée (le défaut de `ollama run`), la qualité monte pour les deux bases mais les réponses sont plus longues ; mesurez-le avec `npm run bench -- --think on`.
-- Les variantes MLX demandent un Mac Apple Silicon ; ailleurs, utilisez `--gguf`.
-- FlyBrain baisse la mémoire des demandes simples, pas celle des demandes difficiles : le pic reste celui du gros modèle. Changer d'expert prend quelques secondes de rechargement. Les agents (qui envoient des outils) vont toujours au gros modèle. Les mesures de mémoire et du routeur viennent d'un serveur Linux en GGUF, pas encore d'un Mac en MLX.
+## Repository contents
 
-## Licence
+- `Modelfile`, `Modelfile.fast`: definitions of the two variants (`ollama create flycoder -f Modelfile`).
+- `Modelfile.lite`, `Modelfile.router`: FlyBrain's 2B expert and micro-model.
+- `brain/`: the FlyBrain server (`flybrain.mjs`), its rules (`router.mjs`) and the router accuracy measurement (`eval-router.mjs`).
+- `install.sh`: one-command install. `scripts/publish.sh`: publishing on ollama.com.
+- `bench/`: quality and speed benchmark; `bench/baselines/` keeps the 0.1 profile for comparison.
+- `tests/`: `npm test` checks the bench tests and the consistency of the Modelfiles and scripts.
+- `training/`, `scripts/build_language_dataset.js`, `server/fly-language.js`: QLoRA pipeline for the former FlyBrain voice (Qwen 2.5 1.5B, MLX), independent of FlyCoder. That voice speaks French by design, so its prompts and dataset stay in French.
 
-Code du dépôt : MIT, voir [license.md](license.md). Les poids restent sous la licence de leur base : Apache 2.0 pour Gemma 4 et pour Qwen3.5, affichée par `ollama show flycoder --license`.
+## Limitations of this beta
+
+- The weights are not retrained: FlyCoder 0.2 is an Ollama profile (base, quantization, settings, context, system prompt). The quality gains come from the change of base and settings, not from fine-tuning.
+- The LiveCodeBench and Codeforces figures are the ones published by Google and Qwen, not FlyCoder measurements. The bundled bench is small (20 problems): it separates profiles, it does not replace a public benchmark.
+- Speed on a Mac has not been measured for this version: the MLX and multi-token gains quoted are those reported by Ollama. On CPU, the main variant is about 2.5 times slower per problem than 0.1; if the gap stays too large on your Mac, `ollama cp flycoder:0.2-beta-fast flycoder:latest` makes the fast variant the default model.
+- Without thinking, all three profiles sometimes leave an abandoned first attempt in the returned code (3 answers out of 20 each): keep thinking on for code you ship.
+- The bench ran without thinking. With thinking on (the `ollama run` default), quality goes up for both bases but answers are longer; measure it with `npm run bench -- --think on`.
+- The MLX variants need an Apple Silicon Mac; elsewhere, use `--gguf`.
+- FlyBrain lowers memory for simple requests, not for hard ones: the peak stays that of the large model. Switching experts takes a few seconds of reloading. Agents (which send tools) always go to the large model. The memory and router measurements come from a Linux server running GGUF, not yet from a Mac running MLX.
+
+## License
+
+Repository code: MIT, see [license.md](license.md). The weights keep the license of their base: Apache 2.0 for Gemma 4 and for Qwen3.5, shown by `ollama show flycoder --license`.

@@ -98,9 +98,9 @@ function main() {
   const maxExpert = values['max-expert'] === 'auto' ? defaultMaxExpert() : values['max-expert'];
   if (!['full', 'fast'].includes(maxExpert)) throw new Error('--max-expert must be auto, full or fast');
   const server = createFlyBrain({ ollama: values.ollama, prefix: values.prefix, maxExpert });
-  server.listen(Number(values.port), values.host, () => console.error(`FlyBrain écoute sur http://${values.host}:${values.port} (Ollama : ${values.ollama}, expert max : ${maxExpert}). Modèles : flycoder, flycoder:fast`));
+  server.listen(Number(values.port), values.host, () => console.error(`FlyBrain listening on http://${values.host}:${values.port} (Ollama: ${values.ollama}, max expert: ${maxExpert}). Models: flycoder, flycoder:fast`));
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(fs.realpathSync(process.argv[1])).href) {
-  try { main(); } catch (error) { console.error(`FlyBrain : ${error.message}`); process.exitCode = 1; }
+  try { main(); } catch (error) { console.error(`FlyBrain: ${error.message}`); process.exitCode = 1; }
 }
