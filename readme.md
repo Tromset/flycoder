@@ -6,12 +6,14 @@ Full documentation (installation, usage, API, settings, benchmark, publishing, t
 
 ## One-command install
 
-You need [Ollama](https://ollama.com/download) 0.31 or later, running. FlyCoder is published at [ollama.com/delairvictor9/flycoder](https://ollama.com/delairvictor9/flycoder):
+You need [Ollama](https://ollama.com/download) 0.31 or later, running. FlyCoder is published at [ollama.com/Tromset/flycoder](https://ollama.com/Tromset/flycoder):
 
 ```sh
-ollama run delairvictor9/flycoder        # Gemma 4 12B, Macs with 16 GB or more
-ollama run delairvictor9/flycoder:fast   # Qwen3.5 4B, 8 GB Macs
+ollama run Tromset/flycoder        # Gemma 4 12B, Macs with 16 GB or more
+ollama run Tromset/flycoder:fast   # Qwen3.5 4B, 8 GB Macs
 ```
+
+For now only the portable GGUF tags are online (`ollama run Tromset/flycoder:0.2-beta-gguf`); the Mac (MLX) tags above come next. Until then, Macs install with `install.sh` below.
 
 Or, to install it under the short name `flycoder`, with the variant picked from your Mac's memory:
 
@@ -63,7 +65,7 @@ ANTHROPIC_BASE_URL=http://127.0.0.1:11435 ANTHROPIC_AUTH_TOKEN=ollama ANTHROPIC_
 # Codex, OpenCode, Cline…: OpenAI-compatible URL http://127.0.0.1:11435/v1, model flycoder
 ```
 
-With the models published on ollama.com rather than installed by `install.sh`: `ollama pull delairvictor9/flycoder:router` (and `:0.2-beta-lite`, `:0.2-beta-fast`, `:0.2-beta`), then `node brain/flybrain.mjs --prefix delairvictor9/`.
+With the models published on ollama.com rather than installed by `install.sh`: `ollama pull Tromset/flycoder:router` (and `:0.2-beta-lite`, `:0.2-beta-fast`, `:0.2-beta`), then `node brain/flybrain.mjs --prefix Tromset/`.
 
 ## What changed since 0.1
 
@@ -116,7 +118,7 @@ ollama run flycoder --think=false        # immediate answer, for simple question
 ollama run flycoder:fast                 # 4B variant if you installed it
 ```
 
-In a conversation, `/set nothink` turns thinking off and `/set parameter num_ctx 65536` enlarges the context (about 0.5 GB of extra memory for the main variant). Ollama recommends at least 64,000 tokens for coding agents; FlyCoder also works with `ollama launch` (Claude Code, Codex, OpenCode): `ollama launch claude --model flycoder` if you installed it with `install.sh`, or `ollama launch claude --model delairvictor9/flycoder` from ollama.com. `ollama launch` talks to Ollama directly; to go through FlyBrain, see the FlyBrain section.
+In a conversation, `/set nothink` turns thinking off and `/set parameter num_ctx 65536` enlarges the context (about 0.5 GB of extra memory for the main variant). Ollama recommends at least 64,000 tokens for coding agents; FlyCoder also works with `ollama launch` (Claude Code, Codex, OpenCode): `ollama launch claude --model flycoder` if you installed it with `install.sh`, or `ollama launch claude --model Tromset/flycoder` from ollama.com. `ollama launch` talks to Ollama directly; to go through FlyBrain, see the FlyBrain section.
 
 From an application, the Ollama API is all you need:
 
@@ -134,7 +136,7 @@ Done once, from an Apple Silicon Mac:
 4. Publish: `sh scripts/publish.sh <username>` (add `--gguf` to also publish the Intel Mac, Linux and Windows builds).
 5. Paste the text of [docs/ollama-model-page.md](docs/ollama-model-page.md) into the model page description.
 
-After that, anyone can run `ollama run <username>/flycoder` or `ollama run <username>/flycoder:fast`. 0.2 beta is published under `delairvictor9`.
+After that, anyone can run `ollama run <username>/flycoder` or `ollama run <username>/flycoder:fast`. The GGUF tags of 0.2 beta are published under `Tromset`; the MLX tags (`latest`, `fast`) still have to be pushed from an Apple Silicon Mac.
 
 ## Repository contents
 

@@ -56,7 +56,7 @@ test('route: a conversation keeps its expert and can only move up', async () => 
 });
 
 test('profiles: prefix for published models and the 8 GB cap', () => {
-  assert.equal(profiles('delairvictor9/').flycoder.hard, 'delairvictor9/flycoder:0.2-beta');
+  assert.equal(profiles('Tromset/').flycoder.hard, 'Tromset/flycoder:0.2-beta');
   assert.equal(profiles('', { maxExpert: 'fast' }).flycoder.hard, 'flycoder:0.2-beta-fast');
   assert.equal(defaultMaxExpert(8 * 2 ** 30), 'fast');
   assert.equal(defaultMaxExpert(16 * 2 ** 30), 'full');

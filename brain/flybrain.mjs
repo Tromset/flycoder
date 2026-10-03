@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // FlyBrain: an Ollama-compatible server that answers to `flycoder` and `flycoder:fast`,
 // routes each request to one expert model and keeps a single expert in memory.
-// Usage: node brain/flybrain.mjs [--port 11435] [--ollama http://127.0.0.1:11434] [--prefix delairvictor9/] [--max-expert auto|full|fast]
+// Usage: node brain/flybrain.mjs [--port 11435] [--ollama http://127.0.0.1:11434] [--prefix Tromset/] [--max-expert auto|full|fast]
 import http from 'node:http';
 import os from 'node:os';
 import fs from 'node:fs';
