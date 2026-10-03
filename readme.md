@@ -1,6 +1,6 @@
-# FlyCoder 0.2 beta
+# FlyCoder 0.3 beta
 
-FlyCoder est un modèle de code local pour Ollama, réglé pour les MacBook et Mac mini Apple Silicon. Depuis la 0.2, FlyCoder est uniquement le modèle : l'ancien atelier (CLI, interface web, Electron, contrôleur FlyBrain) a été retiré. Vous l'utilisez directement avec `ollama run`, ou dans n'importe quel outil compatible Ollama.
+FlyCoder est un modèle de code local pour Ollama, réglé pour les MacBook et Mac mini Apple Silicon. Vous l'utilisez directement avec `ollama run`, ou dans n'importe quel outil compatible Ollama. Depuis la 0.3, le routeur facultatif **FlyBrain** n'active que la partie de FlyCoder dont une demande a besoin, ce qui baisse la mémoire utilisée (voir plus bas).
 
 Documentation complète (installation, utilisation, API, réglages, banc d'essai, publication, dépannage) : [Documentation.md](Documentation.md).
 
@@ -30,6 +30,40 @@ L'installateur détecte la mémoire du Mac et construit la bonne variante dans v
 | `flycoder:0.2-beta-fast` (`fast`) | Qwen3.5 4B, Alibaba Qwen | 4,0 Go, NVFP4 sur MLX | 8 Go et plus | 16 384 tokens |
 
 Les deux bases sont sous licence Apache 2.0 et gèrent les outils (tool calling), la réflexion (thinking) et les images.
+
+## FlyBrain : moins de RAM, même qualité sur les demandes difficiles
+
+FlyBrain s'inspire du cerveau de la mouche : de petits indices tirés de la demande (comme les cellules de Kenyon du corps pédonculé) suffisent à trancher les cas nets. Quand rien n'est net, un micro-modèle de 0,8 milliard de paramètres décide. Un seul « lobe » expert est ensuite chargé en mémoire.
+
+| Vous appelez | Demande simple | Demande difficile, outils (agents) ou long contexte | Demande ambiguë |
+|---|---|---|---|
+| `flycoder` | Qwen3.5 4B, avec réflexion | Gemma 4 12B, avec réflexion | le micro-modèle `flycoder:router` (Qwen3.5 0.8B) choisit |
+| `flycoder:fast` | `flycoder:0.2-beta-lite` (Qwen3.5 2B) | Qwen3.5 4B | Qwen3.5 4B (pas de micro-modèle) |
+
+Mémoire mesurée (mémoire résidente des processus du modèle après une réponse, serveur Linux 16 Go sans GPU, poids GGUF ; sur Mac avec MLX, les valeurs absolues diffèrent) :
+
+| Cas | Sans FlyBrain | Avec FlyBrain |
+|---|---|---|
+| `flycoder`, demande simple | 10,5 Gio | **6,1 Gio** (4B + micro-modèle) |
+| `flycoder`, demande difficile | 10,5 Gio | 10,5 Gio (identique : la qualité est gardée) |
+| `flycoder:fast`, demande simple | 4,6 Gio | **3,7 Gio** |
+| `flycoder:fast`, demande difficile | 4,6 Gio | 4,6 Gio |
+
+Le routeur se trompe rarement : sur 60 demandes étiquetées (les 20 exercices du banc et 40 demandes écrites pour l'occasion dans [tests/fixtures/route-prompts.json](tests/fixtures/route-prompts.json)), il en aiguille 59 correctement. Aucune demande difficile n'est partie vers le petit modèle ; une question git simple est partie vers le gros. Les règles décident seules 39 fois ; le micro-modèle répond en 0,6 s environ (médiane, sur processeur). Si le micro-modèle échoue ou hésite, la demande part vers le gros modèle. Une conversation garde son expert, et ne peut que monter vers le plus fort. Sous 16 Go de mémoire, FlyBrain plafonne `flycoder` au 4B.
+
+```sh
+node ~/.flycoder/brain/flybrain.mjs        # installé par install.sh ; ou : npm run brain depuis ce dépôt
+OLLAMA_HOST=127.0.0.1:11435 ollama run flycoder
+```
+
+FlyBrain parle l'API d'Ollama sur le port 11435 et laisse passer tous les autres modèles. Pour un agent de code, pointez-le sur FlyBrain plutôt que sur Ollama :
+
+```sh
+ANTHROPIC_BASE_URL=http://127.0.0.1:11435 ANTHROPIC_AUTH_TOKEN=ollama ANTHROPIC_API_KEY="" claude --model flycoder   # Claude Code
+# Codex, OpenCode, Cline… : URL compatible OpenAI http://127.0.0.1:11435/v1, modèle flycoder
+```
+
+Avec les modèles publiés sur ollama.com plutôt qu'installés par `install.sh` : `ollama pull delairvictor9/flycoder:router` (et `:0.2-beta-lite`, `:0.2-beta-fast`, `:0.2-beta`), puis `node brain/flybrain.mjs --prefix delairvictor9/`.
 
 ## Ce qui change par rapport à la 0.1
 
@@ -82,7 +116,7 @@ ollama run flycoder --think=false        # réponse immédiate, pour les questio
 ollama run flycoder:fast                 # variante 4B si vous l'avez installée
 ```
 
-Dans une conversation, `/set nothink` coupe la réflexion et `/set parameter num_ctx 65536` agrandit le contexte (environ 0,5 Go de mémoire en plus pour la variante principale). Ollama recommande au moins 64 000 tokens pour les agents de code ; FlyCoder fonctionne aussi avec `ollama launch` (Claude Code, Codex, OpenCode) : `ollama launch claude --model flycoder`.
+Dans une conversation, `/set nothink` coupe la réflexion et `/set parameter num_ctx 65536` agrandit le contexte (environ 0,5 Go de mémoire en plus pour la variante principale). Ollama recommande au moins 64 000 tokens pour les agents de code ; FlyCoder fonctionne aussi avec `ollama launch` (Claude Code, Codex, OpenCode) : `ollama launch claude --model flycoder` si vous l'avez installé avec `install.sh`, ou `ollama launch claude --model delairvictor9/flycoder` depuis ollama.com. `ollama launch` parle directement à Ollama ; pour passer par FlyBrain, voir la section FlyBrain.
 
 Depuis une application, l'API d'Ollama suffit :
 
@@ -105,6 +139,8 @@ Ensuite, n'importe qui peut lancer `ollama run <utilisateur>/flycoder` ou `ollam
 ## Contenu du dépôt
 
 - `Modelfile`, `Modelfile.fast` : définitions des deux variantes (`ollama create flycoder -f Modelfile`).
+- `Modelfile.lite`, `Modelfile.router` : expert 2B et micro-modèle de FlyBrain.
+- `brain/` : le serveur FlyBrain (`flybrain.mjs`), ses règles (`router.mjs`) et la mesure de justesse du routeur (`eval-router.mjs`).
 - `install.sh` : installation en une commande. `scripts/publish.sh` : publication sur ollama.com.
 - `bench/` : banc d'essai qualité et vitesse ; `bench/baselines/` garde le profil 0.1 pour comparer.
 - `tests/` : `npm test` vérifie les tests du banc, la cohérence des Modelfiles et des scripts.
@@ -118,6 +154,7 @@ Ensuite, n'importe qui peut lancer `ollama run <utilisateur>/flycoder` ou `ollam
 - Sans réflexion, les trois profils laissent parfois une première tentative abandonnée dans le code rendu (3 réponses sur 20 chacun) : gardez la réflexion activée pour du code à livrer.
 - Le banc a tourné sans réflexion. Avec la réflexion activée (le défaut de `ollama run`), la qualité monte pour les deux bases mais les réponses sont plus longues ; mesurez-le avec `npm run bench -- --think on`.
 - Les variantes MLX demandent un Mac Apple Silicon ; ailleurs, utilisez `--gguf`.
+- FlyBrain baisse la mémoire des demandes simples, pas celle des demandes difficiles : le pic reste celui du gros modèle. Changer d'expert prend quelques secondes de rechargement. Les agents (qui envoient des outils) vont toujours au gros modèle. Les mesures de mémoire et du routeur viennent d'un serveur Linux en GGUF, pas encore d'un Mac en MLX.
 
 ## Licence
 
