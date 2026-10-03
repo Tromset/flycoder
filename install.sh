@@ -14,7 +14,7 @@ REF=${FLYCODER_REF:-main}
 RAW=https://raw.githubusercontent.com/Tromset/flycoder/$REF
 
 say() { printf '%s\n' "$@"; }
-die() { printf 'FlyCoder : %s\n' "$*" >&2; exit 1; }
+die() { printf 'FlyCoder: %s\n' "$*" >&2; exit 1; }
 
 choice=auto
 engine=auto
@@ -26,20 +26,20 @@ for arg in "$@"; do
     --gguf) engine=gguf ;;
     --no-brain) brain=no ;;
     -h|--help) sed -n '2,9p' "$0" 2>/dev/null || true; exit 0 ;;
-    *) die "option inconnue : $arg" ;;
+    *) die "unknown option: $arg" ;;
   esac
 done
 
-command -v ollama >/dev/null 2>&1 || die "Ollama n'est pas installé. Téléchargez-le sur https://ollama.com/download puis relancez cette commande."
-ollama list >/dev/null 2>&1 || die "Ollama ne répond pas. Ouvrez l'application Ollama (ou lancez 'ollama serve') puis relancez."
+command -v ollama >/dev/null 2>&1 || die "Ollama is not installed. Download it from https://ollama.com/download, then run this command again."
+ollama list >/dev/null 2>&1 || die "Ollama is not responding. Open the Ollama app (or run 'ollama serve'), then try again."
 
 # Version check: returns success when $1 >= $2 (x.y.z).
 version_ge() {
   [ "$(printf '%s\n%s\n' "$2" "$1" | sort -t. -k1,1n -k2,2n -k3,3n | head -n 1)" = "$2" ]
 }
 current=$(ollama --version 2>/dev/null | sed -n 's/.*version is \([0-9][0-9.]*\).*/\1/p' | head -n 1)
-[ -n "$current" ] || die "impossible de lire la version d'Ollama."
-version_ge "$current" "$MIN_OLLAMA" || die "Ollama $current est trop ancien. FlyCoder $VERSION demande Ollama $MIN_OLLAMA ou plus récent : https://ollama.com/download"
+[ -n "$current" ] || die "could not read the Ollama version."
+version_ge "$current" "$MIN_OLLAMA" || die "Ollama $current is too old. FlyCoder $VERSION needs Ollama $MIN_OLLAMA or later: https://ollama.com/download"
 
 os=$(uname -s)
 arch=$(uname -m)
@@ -65,7 +65,7 @@ trap 'rm -rf "$workdir"' EXIT
 trap 'exit 130' INT TERM
 fetch() {
   if [ -f "$here/$1" ] && grep -q "FlyCoder" "$here/$1"; then cp "$here/$1" "$workdir/$1"
-  else curl -fsSL "$RAW/$1" -o "$workdir/$1" || die "téléchargement impossible : $RAW/$1"; fi
+  else curl -fsSL "$RAW/$1" -o "$workdir/$1" || die "download failed: $RAW/$1"; fi
 }
 
 build() { # build <Modelfile> <tag> <mlx base> <gguf base>
@@ -75,14 +75,14 @@ build() { # build <Modelfile> <tag> <mlx base> <gguf base>
     base=$4
     sed "s|^FROM $3\$|FROM $4|" "$workdir/$1" > "$workdir/$1.gguf" && mv "$workdir/$1.gguf" "$workdir/$1"
   fi
-  grep -q "^FROM $base\$" "$workdir/$1" || die "$1 ne part pas de $base."
-  say "" "==> Téléchargement de la base $base"
+  grep -q "^FROM $base\$" "$workdir/$1" || die "$1 does not start from $base."
+  say "" "==> Downloading base model $base"
   ollama pull "$base"
-  say "==> Création de flycoder:$2"
+  say "==> Creating flycoder:$2"
   ollama create "flycoder:$2" -f "$workdir/$1"
 }
 
-say "FlyCoder $VERSION · Ollama $current · $os $arch · ${memory_gb} Go · moteur $engine"
+say "FlyCoder $VERSION · Ollama $current · $os $arch · ${memory_gb} GB · $engine engine"
 case $choice in
   default) build Modelfile "$VERSION" gemma4:12b-mlx gemma4:12b; ollama cp "flycoder:$VERSION" flycoder:latest ;;
   fast) build Modelfile.fast "$VERSION-fast" qwen3.5:4b-mlx qwen3.5:4b; ollama cp "flycoder:$VERSION-fast" flycoder:latest ;;
@@ -102,15 +102,15 @@ if [ "$brain" = yes ]; then
   mkdir -p "$brain_dir"
   for file in brain/router.mjs brain/flybrain.mjs; do
     if [ -f "$here/$file" ]; then cp "$here/$file" "$brain_dir/"
-    else curl -fsSL "$RAW/$file" -o "$brain_dir/${file#brain/}" || die "téléchargement impossible : $RAW/$file"; fi
+    else curl -fsSL "$RAW/$file" -o "$brain_dir/${file#brain/}" || die "download failed: $RAW/$file"; fi
   done
 fi
 
-say "" "FlyCoder est installé. Lancez :  ollama run flycoder"
+say "" "FlyCoder is installed. Run:  ollama run flycoder"
 if [ "$brain" = yes ]; then
-  say "Avec le routeur FlyBrain (moins de RAM, Node 22) :  node $brain_dir/flybrain.mjs" \
-      "puis, dans un autre terminal :  OLLAMA_HOST=127.0.0.1:11435 ollama run flycoder"
-  if [ "$choice" = fast ]; then say "(sans le modèle 12B, lancez FlyBrain avec  --max-expert fast)"; fi
+  say "With the FlyBrain router (less RAM, Node 22):  node $brain_dir/flybrain.mjs" \
+      "then, in another terminal:  OLLAMA_HOST=127.0.0.1:11435 ollama run flycoder"
+  if [ "$choice" = fast ]; then say "(without the 12B model, start FlyBrain with  --max-expert fast)"; fi
 fi
-[ "$choice" = default ] && say "Version la plus rapide (8 Go) :  sh install.sh --fast"
+[ "$choice" = default ] && say "Fastest version (8 GB):  sh install.sh --fast"
 exit 0

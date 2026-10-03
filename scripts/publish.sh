@@ -7,15 +7,15 @@
 set -eu
 
 VERSION=0.2-beta
-die() { printf 'FlyCoder : %s\n' "$*" >&2; exit 1; }
+die() { printf 'FlyCoder: %s\n' "$*" >&2; exit 1; }
 
 user=${1:-}
-[ -n "$user" ] && [ "${user#-}" = "$user" ] || die "usage : sh scripts/publish.sh <nom d'utilisateur ollama.com> [--gguf]"
+[ -n "$user" ] && [ "${user#-}" = "$user" ] || die "usage: sh scripts/publish.sh <ollama.com username> [--gguf]"
 gguf=${2:-}
-[ -z "$gguf" ] || [ "$gguf" = --gguf ] || die "option inconnue : $gguf"
-command -v ollama >/dev/null 2>&1 || die "Ollama n'est pas installé."
+[ -z "$gguf" ] || [ "$gguf" = --gguf ] || die "unknown option: $gguf"
+command -v ollama >/dev/null 2>&1 || die "Ollama is not installed."
 
-require() { ollama show "$1" >/dev/null 2>&1 || die "$1 est absent. Lancez d'abord : sh install.sh --all"; }
+require() { ollama show "$1" >/dev/null 2>&1 || die "$1 is missing. First run: sh install.sh --all"; }
 format() { ollama show "$1" 2>/dev/null | awk '/quantization/ {print $2}' | head -n 1; }
 push() { # push <local model> <remote tag>
   ollama cp "$1" "$user/flycoder:$2"
@@ -29,7 +29,7 @@ require "flycoder:$VERSION-lite"
 require flycoder:router
 # The main tags must hold the Apple Silicon (MLX) builds, never a GGUF fallback.
 for model in "flycoder:$VERSION" "flycoder:$VERSION-fast" "flycoder:$VERSION-lite" flycoder:router; do
-  [ "$(format "$model")" = nvfp4 ] || die "$model n'est pas la version MLX. Publiez depuis un Mac Apple Silicon après : sh install.sh --all"
+  [ "$(format "$model")" = nvfp4 ] || die "$model is not the MLX build. Publish from an Apple Silicon Mac after: sh install.sh --all"
 done
 
 push "flycoder:$VERSION" "$VERSION"
@@ -56,5 +56,5 @@ if [ "$gguf" = --gguf ]; then
   push flycoder:router-gguf router-gguf
 fi
 
-printf '\nPublié. Tout le monde peut maintenant lancer :\n  ollama run %s/flycoder        (Gemma 4 12B, Mac 16 Go et plus)\n  ollama run %s/flycoder:fast   (Qwen3.5 4B, Mac 8 Go)\n' "$user" "$user"
-printf 'Page du modèle : https://ollama.com/%s/flycoder (collez-y docs/ollama-model-page.md)\n' "$user"
+printf '\nPublished. Anyone can now run:\n  ollama run %s/flycoder        (Gemma 4 12B, Macs with 16 GB or more)\n  ollama run %s/flycoder:fast   (Qwen3.5 4B, 8 GB Macs)\n' "$user" "$user"
+printf 'Model page: https://ollama.com/%s/flycoder (paste docs/ollama-model-page.md there)\n' "$user"

@@ -1,43 +1,43 @@
-# Documentation de FlyCoder 0.3 beta
+# FlyCoder 0.3 beta documentation
 
-FlyCoder est un modèle de code local qui tourne dans [Ollama](https://ollama.com), réglé pour les MacBook et Mac mini Apple Silicon. Cette documentation couvre l'installation, l'utilisation, les réglages, le banc d'essai, la publication et le dépannage. Pour une vue d'ensemble rapide, voir le [README](readme.md).
+FlyCoder is a local coding model that runs in [Ollama](https://ollama.com), tuned for Apple Silicon MacBooks and Mac minis. This documentation covers installation, usage, settings, the benchmark, publishing and troubleshooting. For a quick overview, see the [README](readme.md).
 
-## Sommaire
+## Contents
 
-1. [Ce qu'est FlyCoder](#1-ce-quest-flycoder)
-2. [Prérequis](#2-prérequis)
+1. [What FlyCoder is](#1-what-flycoder-is)
+2. [Requirements](#2-requirements)
 3. [Installation](#3-installation)
-4. [Choisir une variante](#4-choisir-une-variante)
-5. [Utilisation](#5-utilisation)
-6. [Réglages](#6-réglages)
-7. [Banc d'essai](#7-banc-dessai)
-8. [Publier une version sur ollama.com](#8-publier-une-version-sur-ollamacom)
-9. [Dépannage](#9-dépannage)
-10. [Développement](#10-développement)
-11. [Limites connues](#11-limites-connues)
-12. [Historique des versions](#12-historique-des-versions)
-13. [Licences](#13-licences)
+4. [Choosing a variant](#4-choosing-a-variant)
+5. [Usage](#5-usage)
+6. [Settings](#6-settings)
+7. [Benchmark](#7-benchmark)
+8. [Publishing a version on ollama.com](#8-publishing-a-version-on-ollamacom)
+9. [Troubleshooting](#9-troubleshooting)
+10. [Development](#10-development)
+11. [Known limitations](#11-known-limitations)
+12. [Version history](#12-version-history)
+13. [Licenses](#13-licenses)
 
-## 1. Ce qu'est FlyCoder
+## 1. What FlyCoder is
 
-FlyCoder 0.2 beta est un **profil Ollama** : un modèle de base ouvert, une quantification adaptée aux Mac, des réglages d'échantillonnage officiels, une fenêtre de contexte explicite et une consigne système dédiée au code. Il s'utilise comme n'importe quel modèle Ollama : dans le terminal, par l'API, ou derrière un agent de code.
+FlyCoder 0.2 beta is an **Ollama profile**: an open base model, a quantization suited to Macs, the official sampling settings, an explicit context window and a system prompt dedicated to code. You use it like any Ollama model: in the terminal, through the API, or behind a coding agent.
 
-FlyCoder ne réentraîne pas les poids. Les gains par rapport à la 0.1 viennent du choix de la base et des réglages, et sont mesurés par le banc d'essai du dépôt (section 7).
+FlyCoder does not retrain the weights. The gains over 0.1 come from the choice of base and settings, and are measured by the repository's benchmark (section 7).
 
-Depuis la 0.2, FlyCoder n'inclut plus d'atelier (CLI, interface web, application Electron, contrôleur FlyBrain) : seul le modèle est livré.
+Since 0.2, FlyCoder no longer includes a workshop (CLI, web interface, Electron app, FlyBrain controller): only the model ships.
 
-## 2. Prérequis
+## 2. Requirements
 
-| Élément | Minimum | Remarque |
+| Item | Minimum | Note |
 |---|---|---|
-| Mac | Apple Silicon (M1 ou plus récent) | Mac Intel, Linux et Windows : variantes GGUF |
-| Mémoire | 8 Go pour `fast`, 16 Go pour la variante principale | L'installateur choisit seul |
-| Ollama | 0.31 ou plus récent | Variante principale MLX ; `fast` MLX demande 0.19 |
-| Disque | 4,0 Go (`fast`) ou 7,7 Go (principale) | Partagés avec les modèles de base, pas de double copie |
-| Node.js | 22 | Seulement pour le banc d'essai et les tests |
-| Python 3 | Celui de macOS | Seulement pour le banc d'essai |
+| Mac | Apple Silicon (M1 or later) | Intel Macs, Linux and Windows: GGUF variants |
+| Memory | 8 GB for `fast`, 16 GB for the main variant | The installer picks for you |
+| Ollama | 0.31 or later | Main variant on MLX; `fast` on MLX needs 0.19 |
+| Disk | 4.0 GB (`fast`) or 7.7 GB (main) | Shared with the base models, no duplicate copy |
+| Node.js | 22 | Only for the benchmark and the tests |
+| Python 3 | The one shipped with macOS | Only for the benchmark |
 
-Vérifier la version d'Ollama :
+Check the Ollama version:
 
 ```sh
 ollama --version
@@ -45,48 +45,49 @@ ollama --version
 
 ## 3. Installation
 
-### 3.1 Depuis ollama.com
+### 3.1 From ollama.com
 
-FlyCoder est publié sur [ollama.com/delairvictor9/flycoder](https://ollama.com/delairvictor9/flycoder). Une seule commande suffit :
+FlyCoder is published at [ollama.com/delairvictor9/flycoder](https://ollama.com/delairvictor9/flycoder). One command is enough:
 
 ```sh
-ollama run delairvictor9/flycoder                       # variante principale (Gemma 4 12B, MLX)
-ollama run delairvictor9/flycoder:fast                  # variante rapide (Qwen3.5 4B, MLX)
-ollama run delairvictor9/flycoder:0.2-beta-gguf         # principale, Mac Intel, Linux, Windows
-ollama run delairvictor9/flycoder:0.2-beta-fast-gguf    # rapide, Mac Intel, Linux, Windows
+ollama run delairvictor9/flycoder                       # main variant (Gemma 4 12B, MLX)
+ollama run delairvictor9/flycoder:fast                  # fast variant (Qwen3.5 4B, MLX)
+ollama run delairvictor9/flycoder:0.2-beta-gguf         # main, Intel Mac, Linux, Windows
+ollama run delairvictor9/flycoder:0.2-beta-fast-gguf    # fast, Intel Mac, Linux, Windows
 ```
 
-Tags disponibles : `latest` et `0.2-beta` (principale), `fast` et `0.2-beta-fast` (rapide), `0.2-beta-gguf` et `0.2-beta-fast-gguf` (portables). Pour l'appeler simplement `flycoder` : `ollama cp delairvictor9/flycoder flycoder`.
+Available tags: `latest` and `0.2-beta` (main), `fast` and `0.2-beta-fast` (fast), `0.2-beta-gguf` and `0.2-beta-fast-gguf` (portable). To call it simply `flycoder`: `ollama cp delairvictor9/flycoder flycoder`.
 
-### 3.2 Installateur en une commande
+### 3.2 One-command installer
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/Tromset/flycoder/main/install.sh | sh
 ollama run flycoder
 ```
 
-L'installateur :
+The installer:
 
-1. vérifie qu'Ollama est installé, démarré et en version 0.31 ou plus ;
-2. détecte le système et la mémoire ;
-3. choisit `flycoder:0.2-beta` à partir de 15 Go de mémoire, sinon `flycoder:0.2-beta-fast` ;
-4. télécharge le modèle de base, crée la variante et la copie sous `flycoder:latest`.
+1. checks that Ollama is installed, running and at version 0.31 or later;
+2. detects the system and the memory;
+3. picks `flycoder:0.2-beta` from 15 GB of memory up, otherwise `flycoder:0.2-beta-fast`;
+4. downloads the base model, creates the variant and copies it to `flycoder:latest`.
 
-Options, à placer après `sh -s --` quand le script est lu depuis `curl` :
+Options, placed after `sh -s --` when the script is read from `curl`:
 
-| Option | Effet |
+| Option | Effect |
 |---|---|
-| `--fast` | installe seulement la variante rapide |
-| `--all` | installe les deux variantes ; `latest` pointe vers la principale |
-| `--gguf` | utilise les poids GGUF portables (Mac Intel, Linux, Windows) au lieu de MLX |
+| `--fast` | installs only the fast variant |
+| `--all` | installs both variants; `latest` points to the main one |
+| `--gguf` | uses the portable GGUF weights (Intel Mac, Linux, Windows) instead of MLX |
+| `--no-brain` | skips the FlyBrain experts (`flycoder:router`, `flycoder:0.2-beta-lite`) |
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/Tromset/flycoder/main/install.sh | sh -s -- --all
 ```
 
-Depuis une copie du dépôt, `sh install.sh` utilise les Modelfiles locaux. La variable `FLYCODER_REF` choisit une autre branche ou étiquette GitHub pour les télécharger.
+From a copy of the repository, `sh install.sh` uses the local Modelfiles. The `FLYCODER_REF` variable picks another GitHub branch or tag to download them from.
 
-### 3.3 À la main
+### 3.3 By hand
 
 ```sh
 git clone https://github.com/Tromset/flycoder.git && cd flycoder
@@ -95,93 +96,93 @@ ollama create flycoder:0.2-beta-fast -f Modelfile.fast
 ollama cp flycoder:0.2-beta flycoder:latest
 ```
 
-Sur une machine sans Apple Silicon, remplacez d'abord la ligne `FROM` : `gemma4:12b-mlx` par `gemma4:12b`, et `qwen3.5:4b-mlx` par `qwen3.5:4b`.
+On a machine without Apple Silicon, first replace the `FROM` line: `gemma4:12b-mlx` with `gemma4:12b`, and `qwen3.5:4b-mlx` with `qwen3.5:4b`.
 
-### 3.4 Vérifier l'installation
+### 3.4 Checking the installation
 
 ```sh
 ollama list                         # flycoder:latest, flycoder:0.2-beta...
-ollama show flycoder                # base, quantification, capacités
-ollama show flycoder --parameters   # réglages appliqués
-ollama run flycoder "Écris une fonction Python qui inverse une chaîne."
-ollama ps                           # mémoire utilisée, part GPU, contexte alloué
+ollama show flycoder                # base, quantization, capabilities
+ollama show flycoder --parameters   # applied settings
+ollama run flycoder "Write a Python function that reverses a string."
+ollama ps                           # memory used, GPU share, allocated context
 ```
 
-Dans `ollama ps`, la colonne PROCESSOR doit afficher `100% GPU`. Une répartition CPU/GPU signale un manque de mémoire (section 9).
+In `ollama ps`, the PROCESSOR column should show `100% GPU`. A CPU/GPU split means memory is short (section 9).
 
-### 3.5 Désinstaller
+### 3.5 Uninstalling
 
 ```sh
 ollama rm flycoder:latest flycoder:0.2-beta flycoder:0.2-beta-fast
-ollama rm gemma4:12b-mlx qwen3.5:4b-mlx   # bases, si aucun autre modèle ne les utilise
+ollama rm gemma4:12b-mlx qwen3.5:4b-mlx   # bases, if no other model uses them
 ```
 
-## 4. Choisir une variante
+## 4. Choosing a variant
 
-| Tag | Base | Poids | Contexte | Pour |
+| Tag | Base | Weights | Context | For |
 |---|---|---|---|---|
-| `flycoder:0.2-beta`, `latest` | Gemma 4 12B (Google DeepMind), NVFP4 sur MLX | 7,7 Go | 32 768 | Mac 16 Go et plus, qualité maximale |
-| `flycoder:0.2-beta-fast`, `fast` | Qwen3.5 4B (Alibaba Qwen), NVFP4 sur MLX | 4,0 Go | 16 384 | Mac 8 Go, vitesse de la 0.1 |
-| `flycoder:0.2-beta-gguf` | Gemma 4 12B, GGUF Q4_K_M | 8,0 Go | 32 768 | Mac Intel, Linux, Windows |
-| `flycoder:0.2-beta-fast-gguf` | Qwen3.5 4B, GGUF Q4_K_M | 3,4 Go | 16 384 | Mac Intel, Linux, Windows |
+| `flycoder:0.2-beta`, `latest` | Gemma 4 12B (Google DeepMind), NVFP4 on MLX | 7.7 GB | 32,768 | Macs with 16 GB or more, maximum quality |
+| `flycoder:0.2-beta-fast`, `fast` | Qwen3.5 4B (Alibaba Qwen), NVFP4 on MLX | 4.0 GB | 16,384 | 8 GB Macs, 0.1's speed |
+| `flycoder:0.2-beta-gguf` | Gemma 4 12B, GGUF Q4_K_M | 8.0 GB | 32,768 | Intel Mac, Linux, Windows |
+| `flycoder:0.2-beta-fast-gguf` | Qwen3.5 4B, GGUF Q4_K_M | 3.4 GB | 16,384 | Intel Mac, Linux, Windows |
 
-Les deux bases gèrent l'appel d'outils, la réflexion (thinking) et les images.
+Both bases support tool calling, thinking and images.
 
-Règle simple : prenez la variante principale si votre Mac a 16 Go ou plus et que la qualité du code compte plus que la latence ; prenez `fast` sur 8 Go ou si vous voulez exactement la réactivité de la 0.1. Pour changer le modèle par défaut :
+Rule of thumb: take the main variant if your Mac has 16 GB or more and code quality matters more than latency; take `fast` on 8 GB or if you want exactly 0.1's responsiveness. To change the default model:
 
 ```sh
-ollama cp flycoder:0.2-beta-fast flycoder:latest   # la variante rapide devient « flycoder »
-ollama cp flycoder:0.2-beta flycoder:latest        # retour à la variante principale
+ollama cp flycoder:0.2-beta-fast flycoder:latest   # the fast variant becomes "flycoder"
+ollama cp flycoder:0.2-beta flycoder:latest        # back to the main variant
 ```
 
-## 5. Utilisation
+## 5. Usage
 
-### 5.1 Dans le terminal
+### 5.1 In the terminal
 
 ```sh
 ollama run flycoder
 ```
 
-Tapez votre demande puis Entrée. Pour un texte sur plusieurs lignes, encadrez-le de `"""`. Commandes utiles dans la conversation :
+Type your request, then press Enter. For multi-line text, wrap it in `"""`. Useful commands in a conversation:
 
-| Commande | Effet |
+| Command | Effect |
 |---|---|
-| `/set nothink` / `/set think` | désactive ou réactive la réflexion |
-| `/set parameter num_ctx 65536` | agrandit le contexte pour la session |
-| `/set system "…"` | remplace la consigne système pour la session |
-| `/show parameters` | affiche les réglages en cours |
-| `/clear` | efface la conversation |
-| `/bye` | quitte |
+| `/set nothink` / `/set think` | turns thinking off or back on |
+| `/set parameter num_ctx 65536` | enlarges the context for the session |
+| `/set system "…"` | replaces the system prompt for the session |
+| `/show parameters` | shows the current settings |
+| `/clear` | clears the conversation |
+| `/bye` | quits |
 
-Options de lancement : `--think=false` (réponse immédiate), `--hidethinking` (masque la réflexion mais la garde), `--verbose` (affiche le débit en tokens par seconde après chaque réponse).
+Launch options: `--think=false` (immediate answer), `--hidethinking` (hides the thinking but keeps it), `--verbose` (shows the tokens-per-second rate after each answer).
 
-Donner un fichier au modèle :
+Giving the model a file:
 
 ```sh
-ollama run flycoder "Trouve les bugs de ce fichier et propose un correctif : $(cat src/parser.py)"
+ollama run flycoder "Find the bugs in this file and suggest a fix: $(cat src/parser.py)"
 ```
 
-Donner une image (capture d'écran, schéma) : écrivez son chemin dans la demande, par exemple `ollama run flycoder "Écris le HTML de cette maquette : ./maquette.png"`.
+Giving it an image (screenshot, diagram): write its path in the request, for example `ollama run flycoder "Write the HTML for this mockup: ./mockup.png"`.
 
-### 5.2 API REST d'Ollama
+### 5.2 Ollama REST API
 
 ```sh
 curl http://localhost:11434/api/chat -d '{
   "model": "flycoder",
-  "messages": [{"role": "user", "content": "Écris une fonction JavaScript debounce(fn, ms)."}],
+  "messages": [{"role": "user", "content": "Write a JavaScript function debounce(fn, ms)."}],
   "think": false,
   "stream": false
 }'
 ```
 
-- `"think": true` ou `false` active ou coupe la réflexion ; la réflexion est renvoyée à part dans `message.thinking`.
-- `"stream": true` (par défaut) envoie la réponse au fil de l'eau en lignes JSON.
-- `"options": {"num_ctx": 65536}` change un réglage pour une requête.
-- Un message `{"role": "system", ...}` remplace la consigne système de FlyCoder pour cette conversation.
+- `"think": true` or `false` turns thinking on or off; the thinking comes back separately in `message.thinking`.
+- `"stream": true` (the default) sends the answer as it is generated, as JSON lines.
+- `"options": {"num_ctx": 65536}` changes a setting for one request.
+- A `{"role": "system", ...}` message replaces FlyCoder's system prompt for that conversation.
 
-### 5.3 API compatible OpenAI
+### 5.3 OpenAI-compatible API
 
-Ollama expose aussi `http://localhost:11434/v1`. Exemple en Python avec le paquet `openai` :
+Ollama also exposes `http://localhost:11434/v1`. Example in Python with the `openai` package:
 
 ```python
 from openai import OpenAI
@@ -189,14 +190,14 @@ from openai import OpenAI
 client = OpenAI(base_url="http://localhost:11434/v1", api_key="ollama")
 reply = client.chat.completions.create(
     model="flycoder",
-    messages=[{"role": "user", "content": "Écris un test pytest pour une fonction slugify."}],
+    messages=[{"role": "user", "content": "Write a pytest test for a slugify function."}],
 )
 print(reply.choices[0].message.content)
 ```
 
-### 5.4 Agents de code et éditeurs
+### 5.4 Coding agents and editors
 
-`ollama launch` configure et ouvre un agent avec FlyCoder :
+`ollama launch` sets up and opens an agent with FlyCoder:
 
 ```sh
 ollama launch claude --model flycoder     # Claude Code
@@ -204,57 +205,57 @@ ollama launch codex --model flycoder      # Codex
 ollama launch opencode --model flycoder   # OpenCode
 ```
 
-Si vous avez pris FlyCoder sur ollama.com sans `install.sh`, utilisez le nom publié : `ollama launch claude --model delairvictor9/flycoder`.
+If you got FlyCoder from ollama.com without `install.sh`, use the published name: `ollama launch claude --model delairvictor9/flycoder`.
 
-`ollama launch --help` liste les autres intégrations, dont VS Code, Copilot CLI, Cline, Qwen Code, Pi et Droid. Les agents envoient de longues consignes et beaucoup de fichiers : Ollama recommande au moins 64 000 tokens de contexte pour eux (section 6.2).
+`ollama launch --help` lists the other integrations, including VS Code, Copilot CLI, Cline, Qwen Code, Pi and Droid. Agents send long instructions and many files: Ollama recommends at least 64,000 tokens of context for them (section 6.2).
 
-### 5.5 FlyBrain : le routeur qui baisse la RAM
+### 5.5 FlyBrain: the router that lowers RAM use
 
-FlyBrain est un petit serveur Node 22, sans dépendance, qui se place devant Ollama sur le port 11435. Il répond aux noms `flycoder` et `flycoder:fast`, choisit un expert pour chaque demande et ne garde qu'un expert en mémoire. Les autres modèles et les autres routes passent tels quels.
+FlyBrain is a small, dependency-free Node 22 server that sits in front of Ollama on port 11435. It answers to the names `flycoder` and `flycoder:fast`, picks an expert for each request and keeps only one expert in memory. Other models and other routes pass through unchanged.
 
 ```sh
-node ~/.flycoder/brain/flybrain.mjs          # copié par install.sh ; ou npm run brain dans ce dépôt
-node brain/flybrain.mjs --prefix delairvictor9/   # avec les modèles publiés sur ollama.com
+node ~/.flycoder/brain/flybrain.mjs          # copied by install.sh; or npm run brain in this repository
+node brain/flybrain.mjs --prefix delairvictor9/   # with the models published on ollama.com
 ```
 
-Options : `--port` (11435), `--ollama` (http://127.0.0.1:11434), `--prefix`, `--max-expert auto|full|fast`. Avec `auto`, la valeur par défaut, un Mac de moins de 16 Go plafonne `flycoder` au 4B.
+Options: `--port` (11435), `--ollama` (http://127.0.0.1:11434), `--prefix`, `--max-expert auto|full|fast`. With `auto`, the default, a Mac with less than 16 GB caps `flycoder` at the 4B.
 
-Comment une demande est aiguillée :
+How a request is routed:
 
-1. **Règles** (gratuites) : la demande est difficile si elle contient des outils (agents), plus de 6 000 caractères, plusieurs blocs de code, une spécification en liste, ou un mot comme débogue, algorithme, optimise, sécurité, erreur. Elle est simple si c'est une question courte sans code (« qu'est-ce que », « comment on », « explique »…).
-2. **Micro-modèle** `flycoder:router` (Qwen3.5 0.8B, 1 Go) pour le reste. Il répond `{"level":"simple"}` ou `{"level":"hard"}` au format JSON imposé. S'il échoue, dépasse 8 s ou répond autre chose, la demande part vers le gros modèle. Il n'est pas appelé si le gros modèle est déjà chargé. `flycoder:fast` n'a pas de micro-modèle : une demande ambiguë garde le 4B.
-3. **Mémoire de conversation** : une conversation garde son expert et ne peut que monter vers le plus fort.
-4. **Un seul expert** : avant de charger un autre expert, FlyBrain attend la fin des réponses en cours, puis décharge l'ancien. Il décharge aussi le micro-modèle avant le gros modèle.
+1. **Rules** (free): a request is hard if it carries tools (agents), more than 6,000 characters, several code blocks, a bulleted specification, or a word such as debug, algorithm, optimize, security, error. It is simple if it is a short question without code ("what is", "how do I", "explain"…). The rules recognize these cues in both English and French.
+2. **The `flycoder:router` micro-model** (Qwen3.5 0.8B, 1 GB) for the rest. It answers `{"level":"simple"}` or `{"level":"hard"}` in an enforced JSON format. If it fails, takes longer than 8 s or answers anything else, the request goes to the large model. It is not called when the large model is already loaded. `flycoder:fast` has no micro-model: an unclear request keeps the 4B.
+3. **Conversation memory**: a conversation keeps its expert and can only move up to the stronger one.
+4. **A single expert**: before loading another expert, FlyBrain waits for the running answers to finish, then unloads the old one. It also unloads the micro-model before the large model.
 
-La variante normale force la réflexion (`think: true`) sauf si le client la coupe. Chaque réponse porte les en-têtes `x-flybrain-expert` et `x-flybrain-reason`, et le terminal de FlyBrain affiche une ligne par décision.
+The normal variant forces thinking (`think: true`) unless the client turns it off. Each response carries the `x-flybrain-expert` and `x-flybrain-reason` headers, and FlyBrain's terminal prints one line per decision.
 
-Brancher les outils :
+Connecting tools:
 
 ```sh
 OLLAMA_HOST=127.0.0.1:11435 ollama run flycoder
 ANTHROPIC_BASE_URL=http://127.0.0.1:11435 ANTHROPIC_AUTH_TOKEN=ollama ANTHROPIC_API_KEY="" claude --model flycoder
-curl http://127.0.0.1:11435/v1/chat/completions -d '{"model":"flycoder","messages":[{"role":"user","content":"Bonjour"}]}'
+curl http://127.0.0.1:11435/v1/chat/completions -d '{"model":"flycoder","messages":[{"role":"user","content":"Hello"}]}'
 ```
 
-Mesurer la justesse du routeur sur vos propres demandes : ajoutez-les à `tests/fixtures/route-prompts.json`, puis lancez `node brain/eval-router.mjs`. Les mesures de mémoire et de justesse sont dans le [README](readme.md#flybrain--moins-de-ram-même-qualité-sur-les-demandes-difficiles).
+To measure the router's accuracy on your own requests: add them to `tests/fixtures/route-prompts.json`, then run `node brain/eval-router.mjs`. The memory and accuracy measurements are in the [README](readme.md#flybrain-less-ram-same-quality-on-hard-requests).
 
-## 6. Réglages
+## 6. Settings
 
-### 6.1 Ce que fixent les Modelfiles
+### 6.1 What the Modelfiles set
 
-| Paramètre | Principale | `fast` | Pourquoi |
+| Parameter | Main | `fast` | Why |
 |---|---|---|---|
-| `num_ctx` | 32 768 | 16 384 | Ollama limite sinon à 4 096 tokens sous 24 Go de mémoire |
-| `temperature` | 1 | 0,6 | Valeurs officielles de Google et de Qwen pour le code |
-| `top_k` | 64 | 20 | Idem |
-| `top_p` | 0,95 | 0,95 | Idem |
-| `min_p`, `presence_penalty`, `repeat_penalty` | hérités | 0, 0, 1 | Réglages Qwen « code en mode réflexion » |
+| `num_ctx` | 32,768 | 16,384 | Otherwise Ollama limits machines under 24 GB of memory to 4,096 tokens |
+| `temperature` | 1 | 0.6 | Official values from Google and Qwen for coding |
+| `top_k` | 64 | 20 | Same |
+| `top_p` | 0.95 | 0.95 | Same |
+| `min_p`, `presence_penalty`, `repeat_penalty` | inherited | 0, 0, 1 | Qwen's "coding in thinking mode" settings |
 
-La variante principale hérite aussi de Gemma 4 son modèle brouillon de prédiction multi-tokens, activé par Ollama. Évitez de baisser la température : Qwen et Google la recommandent telle quelle, et la 0.1 (température 0,2) produisait des réponses en boucle.
+The main variant also inherits Gemma 4's multi-token prediction draft model, enabled by Ollama. Avoid lowering the temperature: Qwen and Google recommend it as is, and 0.1 (temperature 0.2) produced looping answers.
 
-### 6.2 Agrandir le contexte
+### 6.2 Enlarging the context
 
-Pour une session : `/set parameter num_ctx 65536`. Pour un modèle permanent, créez une variante :
+For one session: `/set parameter num_ctx 65536`. For a permanent model, create a variant:
 
 ```sh
 printf 'FROM flycoder:0.2-beta\nPARAMETER num_ctx 65536\n' > Modelfile.64k
@@ -262,125 +263,125 @@ ollama create flycoder:64k -f Modelfile.64k
 ollama launch claude --model flycoder:64k
 ```
 
-Coût mémoire du cache, en plus des poids : environ 0,5 Go par tranche de 32 768 tokens pour la variante principale, et environ 0,5 Go par tranche de 16 384 tokens pour `fast`. Sur un Mac 16 Go, 65 536 tokens devraient tenir avec la variante principale si peu d'autres applications tournent (non mesuré) : vérifiez avec `ollama ps` que le modèle reste à `100% GPU`.
+Memory cost of the cache, on top of the weights: about 0.5 GB per 32,768 tokens for the main variant, and about 0.5 GB per 16,384 tokens for `fast`. On a 16 GB Mac, 65,536 tokens should fit with the main variant if few other applications are running (not measured): check with `ollama ps` that the model stays at `100% GPU`.
 
-### 6.3 Réflexion
+### 6.3 Thinking
 
-La réflexion est activée par défaut : le modèle raisonne avant de répondre, ce qui améliore nettement le code sur les problèmes difficiles mais allonge l'attente. Coupez-la pour les questions simples (`--think=false`, `/set nothink`, ou `"think": false` dans l'API). Sans réflexion, le banc a montré que les modèles laissent parfois une première tentative abandonnée dans le code rendu ; gardez-la pour du code à livrer.
+Thinking is on by default: the model reasons before answering, which clearly improves code on hard problems but lengthens the wait. Turn it off for simple questions (`--think=false`, `/set nothink`, or `"think": false` in the API). Without thinking, the benchmark showed that models sometimes leave an abandoned first attempt in the returned code; keep it on for code you ship.
 
-### 6.4 Consigne système
+### 6.4 System prompt
 
-La consigne de FlyCoder (`ollama show flycoder --system`) demande de :
+FlyCoder's system prompt (`ollama show flycoder --system`) asks the model to:
 
-- respecter exactement les noms, signatures et fichiers demandés ;
-- livrer du code complet et exécutable, sans « TODO » ;
-- traiter les cas limites ;
-- privilégier la bibliothèque standard et ne jamais inventer d'API ;
-- choisir un algorithme adapté ;
-- ne montrer que les parties modifiées d'un fichier existant ;
-- ne jamais prétendre avoir exécuté des tests ;
-- éviter les failles classiques ;
-- répondre dans la langue de l'utilisateur.
+- keep the requested names, signatures and files exactly;
+- deliver complete, runnable code, without "TODO";
+- handle edge cases;
+- prefer the standard library and never invent APIs;
+- choose a suitable algorithm;
+- show only the changed parts of an existing file;
+- never claim to have run tests;
+- avoid common vulnerabilities;
+- answer in the user's language.
 
-Remplacez-la pour une session avec `/set system`, ou par un message `system` dans l'API.
+Replace it for a session with `/set system`, or with a `system` message in the API.
 
-### 6.5 Réglages du serveur Ollama
+### 6.5 Ollama server settings
 
-Ces variables s'appliquent à tous les modèles. Sur Mac, avec l'application Ollama, définissez-les avec `launchctl setenv` puis redémarrez Ollama :
+These variables apply to every model. On a Mac running the Ollama app, set them with `launchctl setenv`, then restart Ollama:
 
 ```sh
-launchctl setenv OLLAMA_KV_CACHE_TYPE q8_0      # cache de contexte deux fois plus petit, perte de précision faible
-launchctl setenv OLLAMA_KEEP_ALIVE 30m          # garde le modèle chargé 30 minutes
+launchctl setenv OLLAMA_KV_CACHE_TYPE q8_0      # context cache half the size, small loss of precision
+launchctl setenv OLLAMA_KEEP_ALIVE 30m          # keeps the model loaded for 30 minutes
 ```
 
-`OLLAMA_KV_CACHE_TYPE=q8_0` divise par deux la mémoire du cache de contexte des modèles GGUF (tags `-gguf`) ; la documentation d'Ollama ne précise pas son effet sur le moteur MLX. `OLLAMA_KEEP_ALIVE` évite de recharger le modèle entre deux questions espacées.
+`OLLAMA_KV_CACHE_TYPE=q8_0` halves the context cache memory of GGUF models (`-gguf` tags); Ollama's documentation does not say how it affects the MLX engine. `OLLAMA_KEEP_ALIVE` avoids reloading the model between two widely spaced questions.
 
-## 7. Banc d'essai
+## 7. Benchmark
 
-Le dossier `bench/` mesure le taux de réussite et la vitesse de n'importe quel modèle Ollama sur 20 exercices de code :
+The `bench/` folder measures the pass rate and speed of any Ollama model on 20 coding problems:
 
-- 13 en Python et 7 en JavaScript ;
-- chacun avec des tests cachés, que le modèle ne voit jamais ;
-- chaque test est prouvé par une solution de référence et rejette une solution vide (`npm test`).
+- 13 in Python and 7 in JavaScript;
+- each with hidden tests that the model never sees;
+- each test is proven by a reference solution and rejects an empty solution (`npm test`).
 
 ```sh
-ollama create flycoder0.1beta -f bench/baselines/flycoder-0.1-beta.Modelfile   # pour comparer à la 0.1
+ollama create flycoder0.1beta -f bench/baselines/flycoder-0.1-beta.Modelfile   # to compare with 0.1
 npm run bench -- --models flycoder0.1beta,flycoder:0.2-beta,flycoder:0.2-beta-fast
 ```
 
-| Option | Effet |
+| Option | Effect |
 |---|---|
-| `--models a,b` | modèles à comparer, l'un après l'autre (la mémoire est libérée entre deux) |
-| `--think on\|off\|default` | force ou coupe la réflexion ; `default` suit le modèle |
-| `--samples 3` | plusieurs essais par exercice, pour lisser le hasard |
-| `--only py-lcs,js-evaluate` | sous-ensemble d'exercices |
-| `--max-tokens 8192` | plafond de tokens par réponse ; une réponse coupée compte comme un échec |
-| `--num-ctx 8192` | contexte réduit pour les machines à court de mémoire, sans effet sur ces réponses courtes |
-| `--out fichier.json` | emplacement du rapport ; par défaut `bench/results/` |
-| `--no-sandbox` | désactive la sandbox macOS |
+| `--models a,b` | models to compare, one after the other (memory is freed in between) |
+| `--think on\|off\|default` | forces or disables thinking; `default` follows the model |
+| `--samples 3` | several attempts per problem, to smooth out randomness |
+| `--only py-lcs,js-evaluate` | subset of problems |
+| `--max-tokens 8192` | token cap per answer; a truncated answer counts as a failure |
+| `--num-ctx 8192` | smaller context for machines short on memory, with no effect on these short answers |
+| `--out file.json` | report location; `bench/results/` by default |
+| `--no-sandbox` | disables the macOS sandbox |
 
-Le banc affiche un tableau (réussites, débit de génération, vitesse de lecture du prompt, tokens par réponse, secondes par exercice) et enregistre chaque réponse, chaque erreur de test et chaque compteur dans le JSON, mis à jour après chaque exercice.
+The bench prints a table (passes, generation rate, prompt processing speed, tokens per answer, seconds per problem) and records every answer, every test error and every counter in the JSON, updated after each problem.
 
-Il exécute le code écrit par les modèles sur votre machine, dans un dossier temporaire, avec un délai limite. Sur macOS, `sandbox-exec` lui interdit le réseau et l'écriture hors de ce dossier.
+It runs the code written by the models on your machine, in a temporary folder, with a time limit. On macOS, `sandbox-exec` blocks network access and writes outside that folder.
 
-Résultats de référence, enregistrés dans [docs/bench/cpu-nothink.json](docs/bench/cpu-nothink.json) sur un serveur Linux sans GPU, avec les poids GGUF, sans réflexion et un essai par exercice :
+Reference results, recorded in [docs/bench/cpu-nothink.json](docs/bench/cpu-nothink.json) on a Linux server without a GPU, with GGUF weights, without thinking and one attempt per problem:
 
-| Profil | Réussis | Génération | Tokens par réponse | Temps par exercice |
+| Profile | Passed | Generation | Tokens per answer | Time per problem |
 |---|---|---|---|---|
-| `flycoder0.1beta` (0.1) | 5/20 | 6,6 tok/s | 581 | 94 s |
-| `flycoder:0.2-beta-fast` | 5/20 | 6,5 tok/s | 537 | 89 s |
-| `flycoder:0.2-beta` | 14/20 | 3,4 tok/s | 739 | 235 s |
+| `flycoder0.1beta` (0.1) | 5/20 | 6.6 tok/s | 581 | 94 s |
+| `flycoder:0.2-beta-fast` | 5/20 | 6.5 tok/s | 537 | 89 s |
+| `flycoder:0.2-beta` | 14/20 | 3.4 tok/s | 739 | 235 s |
 
-Sur ce serveur, la variante principale réussit presque trois fois plus d'exercices, mais met environ 2,5 fois plus de temps par exercice. La variante rapide garde la vitesse et le taux de réussite de la 0.1. Aucune mesure n'a encore été faite sur Mac, où le moteur MLX et la prédiction multi-tokens devraient réduire l'écart de vitesse.
+On this server, the main variant solves almost three times as many problems, but takes about 2.5 times as long per problem. The fast variant keeps 0.1's speed and pass rate. No measurement has been made on a Mac yet, where the MLX engine and multi-token prediction should narrow the speed gap.
 
-## 8. Publier une version sur ollama.com
+## 8. Publishing a version on ollama.com
 
-La 0.2 beta est publiée sous le compte `delairvictor9`. Pour publier une nouvelle version, suivez ces étapes. Le script refuse de pousser des versions non MLX sous les tags principaux : construisez-les sur un Mac Apple Silicon.
+0.2 beta is published under the `delairvictor9` account. To publish a new version, follow these steps. The script refuses to push non-MLX builds under the main tags: build them on an Apple Silicon Mac.
 
-1. Créez un compte sur [ollama.com](https://ollama.com/signup). Le nom d'utilisateur devient le préfixe du modèle (`<utilisateur>/flycoder`).
-2. Reliez la machine au compte : `ollama signin`, puis validez dans le navigateur. Les machines autorisées se gèrent dans les réglages du compte, rubrique des clés Ollama ; retirez celles dont vous ne vous servez plus.
-3. Construisez les deux variantes : `sh install.sh --all`.
-4. Publiez : `sh scripts/publish.sh <utilisateur>`. Ajoutez `--gguf` pour publier aussi `0.2-beta-gguf` et `0.2-beta-fast-gguf`.
-5. Sur la page `https://ollama.com/<utilisateur>/flycoder`, collez le texte de [docs/ollama-model-page.md](docs/ollama-model-page.md).
+1. Create an account on [ollama.com](https://ollama.com/signup). The username becomes the model's prefix (`<username>/flycoder`).
+2. Link the machine to the account: `ollama signin`, then confirm in the browser. Authorized machines are managed in the account settings, under Ollama keys; remove the ones you no longer use.
+3. Build both variants: `sh install.sh --all`.
+4. Publish: `sh scripts/publish.sh <username>`. Add `--gguf` to also publish the GGUF tags (`0.2-beta-gguf`, `0.2-beta-fast-gguf`, `0.2-beta-lite-gguf`, `router-gguf`).
+5. On the `https://ollama.com/<username>/flycoder` page, paste the text of [docs/ollama-model-page.md](docs/ollama-model-page.md).
 
-Tags publiés : `0.2-beta` et `latest` (principale), `0.2-beta-fast` et `fast` (rapide), plus les deux tags GGUF avec `--gguf`. Les poids déjà présents sur le registre d'Ollama ne sont pas renvoyés : pour la 0.2, dont les bases viennent de la bibliothèque officielle, la publication des six tags n'a pris que quelques minutes.
+Published tags: `0.2-beta` and `latest` (main), `0.2-beta-fast` and `fast` (fast), `0.2-beta-lite` and `router` (FlyBrain experts), plus the GGUF tags with `--gguf`. Weights already on Ollama's registry are not uploaded again: for 0.2, whose bases come from the official library, publishing the six tags took only a few minutes.
 
-Pour une nouvelle version, mettez à jour la version dans `package.json`, `install.sh`, `scripts/publish.sh` et la consigne système des deux Modelfiles. `npm test` vérifie qu'ils concordent.
+For a new version, update the version in `package.json`, `install.sh`, `scripts/publish.sh` and the system prompt of the Modelfiles. `npm test` checks that they agree.
 
-## 9. Dépannage
+## 9. Troubleshooting
 
-| Symptôme | Cause probable | Solution |
+| Symptom | Likely cause | Fix |
 |---|---|---|
-| `this model requires MLX support` | machine sans Apple Silicon, ou Ollama trop ancien | mettre Ollama à jour ; sinon `sh install.sh --gguf` ou les tags `-gguf` |
-| `requires a newer version of Ollama` | Ollama antérieur à 0.31 | mettre à jour depuis https://ollama.com/download |
-| L'installateur dit « Ollama ne répond pas » | application fermée | ouvrir Ollama, ou lancer `ollama serve` |
-| Réponses très lentes, `ollama ps` montre une part CPU | mémoire insuffisante, le modèle déborde du GPU | fermer des applications, réduire `num_ctx`, ou passer à `flycoder:fast` |
-| Le modèle s'arrête ou plante au chargement | mémoire saturée | idem ; un seul gros modèle chargé à la fois |
-| Le modèle oublie le début d'un long fichier | contexte trop petit | agrandir `num_ctx` (section 6.2) |
-| Réflexion trop longue | question simple traitée en mode réflexion | `--think=false` ou `/set nothink` |
-| Répétitions sans fin | température modifiée trop basse | revenir aux réglages du Modelfile |
-| `npm run bench` : « Reference solution failed » | `python3` ou `node` absent, ou sandbox refusée | `xcode-select --install`, Node 22, ou `--no-sandbox` |
-| `publish.sh` : « n'est pas la version MLX » | variantes construites en GGUF | relancer `sh install.sh --all` sur un Mac Apple Silicon |
+| `this model requires MLX support` | machine without Apple Silicon, or Ollama too old | update Ollama; otherwise `sh install.sh --gguf` or the `-gguf` tags |
+| `requires a newer version of Ollama` | Ollama older than 0.31 | update from https://ollama.com/download |
+| The installer says "Ollama is not responding" | the app is closed | open Ollama, or run `ollama serve` |
+| Very slow answers, `ollama ps` shows a CPU share | not enough memory, the model spills out of the GPU | close applications, lower `num_ctx`, or switch to `flycoder:fast` |
+| The model stops or crashes while loading | memory full | same; only one large model loaded at a time |
+| The model forgets the start of a long file | context too small | enlarge `num_ctx` (section 6.2) |
+| Thinking takes too long | simple question handled in thinking mode | `--think=false` or `/set nothink` |
+| Endless repetition | temperature changed to a value that is too low | go back to the Modelfile's settings |
+| `npm run bench`: "Reference solution failed" | `python3` or `node` missing, or sandbox refused | `xcode-select --install`, Node 22, or `--no-sandbox` |
+| `publish.sh`: "is not the MLX build" | variants built as GGUF | rerun `sh install.sh --all` on an Apple Silicon Mac |
 
-## 10. Développement
+## 10. Development
 
-### 10.1 Structure du dépôt
+### 10.1 Repository layout
 
-| Chemin | Rôle |
+| Path | Role |
 |---|---|
-| `Modelfile`, `Modelfile.fast` | définitions des deux variantes |
-| `Modelfile.lite`, `Modelfile.router` | expert 2B et micro-modèle de FlyBrain |
-| `brain/flybrain.mjs`, `brain/router.mjs` | serveur FlyBrain et règles de routage |
-| `brain/eval-router.mjs`, `tests/fixtures/route-prompts.json` | mesure de la justesse du routeur |
-| `install.sh` | installateur en une commande |
-| `scripts/publish.sh` | publication sur ollama.com |
-| `bench/bench.mjs`, `bench/problems.mjs` | banc d'essai et exercices |
-| `bench/baselines/` | profil de la 0.1, pour comparer |
-| `docs/bench/` | résultats de référence |
-| `docs/ollama-model-page.md` | texte de la page ollama.com |
-| `tests/` | tests du banc, des Modelfiles et des scripts |
-| `.github/workflows/test.yml` | CI sur Linux et macOS |
-| `training/`, `scripts/build_language_dataset.js`, `server/fly-language.js` | ancien pipeline de voix FlyBrain, indépendant de FlyCoder |
+| `Modelfile`, `Modelfile.fast` | definitions of the two variants |
+| `Modelfile.lite`, `Modelfile.router` | FlyBrain's 2B expert and micro-model |
+| `brain/flybrain.mjs`, `brain/router.mjs` | FlyBrain server and routing rules |
+| `brain/eval-router.mjs`, `tests/fixtures/route-prompts.json` | router accuracy measurement |
+| `install.sh` | one-command installer |
+| `scripts/publish.sh` | publishing on ollama.com |
+| `bench/bench.mjs`, `bench/problems.mjs` | benchmark and problems |
+| `bench/baselines/` | 0.1 profile, for comparison |
+| `docs/bench/` | reference results |
+| `docs/ollama-model-page.md` | text of the ollama.com page |
+| `tests/` | tests for the bench, the Modelfiles and the scripts |
+| `.github/workflows/test.yml` | CI on Linux and macOS |
+| `training/`, `scripts/build_language_dataset.js`, `server/fly-language.js` | former FlyBrain voice pipeline, independent of FlyCoder; the voice speaks French by design |
 
 ### 10.2 Tests
 
@@ -388,54 +389,54 @@ Pour une nouvelle version, mettez à jour la version dans `package.json`, `insta
 npm test
 ```
 
-Les tests vérifient :
+The tests check:
 
-- que chaque solution de référence passe ses tests cachés, et qu'une solution vide échoue ;
-- l'extraction du code des réponses et le calcul des statistiques ;
-- la lecture des réponses en flux continu et le délai limite d'exécution ;
-- que les deux Modelfiles partent des bonnes bases, avec les réglages attendus et une consigne identique hormis le nom de la base ;
-- que l'installateur et le script de publication concordent avec les Modelfiles et la version ;
-- les règles de FlyBrain (les 20 exercices du banc vont au gros modèle), le repli vers le gros modèle quand le micro-modèle échoue, la mémoire de conversation et l'ordonnanceur ;
-- le serveur FlyBrain contre un faux Ollama : réécriture du modèle sur les API native, OpenAI et Anthropic, flux transmis, un seul expert chargé à la fois.
+- that each reference solution passes its hidden tests, and that an empty solution fails;
+- code extraction from answers and the statistics;
+- reading streamed answers and the execution time limit;
+- that the Modelfiles start from the right bases, with the expected settings and an identical system prompt apart from the base name;
+- that the installer and the publishing script agree with the Modelfiles and the version;
+- FlyBrain's rules (the 20 bench problems go to the large model), the fallback to the large model when the micro-model fails, conversation memory and the scheduler;
+- the FlyBrain server against a fake Ollama: model rewriting on the native, OpenAI and Anthropic APIs, streaming passed through, a single expert loaded at a time.
 
-La CI les lance sur Linux et sur macOS, où les solutions de référence tournent dans la sandbox.
+CI runs them on Linux and on macOS, where the reference solutions run inside the sandbox.
 
-### 10.3 Modifier la consigne système
+### 10.3 Changing the system prompt
 
-Modifiez le bloc `SYSTEM` des deux Modelfiles à l'identique (seule la phrase qui nomme la base diffère), lancez `npm test`, reconstruisez avec `ollama create`, puis comparez avant et après avec `npm run bench`.
+Edit the `SYSTEM` block of the Modelfiles identically (only the sentence naming the base differs), run `npm test`, rebuild with `ollama create`, then compare before and after with `npm run bench`.
 
-### 10.4 Ajouter un exercice au banc
+### 10.4 Adding a problem to the bench
 
-Ajoutez un objet à `bench/problems.mjs` avec :
+Add an object to `bench/problems.mjs` with:
 
-- `id` (préfixe `py-` ou `js-`) ;
-- `language` (`python` ou `javascript`) ;
-- `entry` (fonction ou classe attendue) ;
-- `prompt` (seul texte envoyé au modèle) ;
-- `reference` (solution correcte) ;
+- `id` (`py-` or `js-` prefix);
+- `language` (`python` or `javascript`);
+- `entry` (expected function or class);
+- `prompt` (the only text sent to the model);
+- `reference` (correct solution);
 - `test` (assertions).
 
-`npm test` refuse l'exercice si la référence échoue ou si une solution vide passe.
+`npm test` rejects the problem if the reference fails or if an empty solution passes.
 
-## 11. Limites connues
+## 11. Known limitations
 
-- Les poids ne sont pas réentraînés : FlyCoder est un profil de modèles existants.
-- Les chiffres LiveCodeBench (72,0 % pour Gemma 4 12B, 55,8 % pour Qwen3.5 4B) sont ceux publiés par Google et Qwen, pas des mesures FlyCoder.
-- Le banc compte 20 exercices et un essai par exercice : il départage des profils, sans remplacer un benchmark public.
-- La vitesse sur Mac n'a pas été mesurée pour cette version. Les gains MLX (environ +20 %) et multi-tokens (environ +90 % sur Apple Silicon) sont ceux annoncés par Ollama ; sur processeur, le gain multi-tokens mesuré est de 49 %.
-- Le mode réflexion n'a pas été mesuré par le banc.
-- Les tags MLX ne fonctionnent que sur Apple Silicon.
-- FlyBrain ne baisse pas le pic de mémoire des demandes difficiles, et changer d'expert coûte quelques secondes. Ses mesures (mémoire, justesse sur 60 demandes) viennent d'un serveur Linux en GGUF, pas d'un Mac en MLX. Les règles ont été retouchées une fois après une première mesure sur ces mêmes demandes : le score sur des demandes nouvelles peut être un peu plus bas.
+- The weights are not retrained: FlyCoder is a profile of existing models.
+- The LiveCodeBench figures (72.0% for Gemma 4 12B, 55.8% for Qwen3.5 4B) are the ones published by Google and Qwen, not FlyCoder measurements.
+- The bench has 20 problems and one attempt per problem: it separates profiles without replacing a public benchmark.
+- Speed on a Mac has not been measured for this version. The MLX (about +20%) and multi-token (about +90% on Apple Silicon) gains are those reported by Ollama; on CPU, the measured multi-token gain is 49%.
+- Thinking mode has not been measured by the bench.
+- The MLX tags only work on Apple Silicon.
+- FlyBrain does not lower the memory peak of hard requests, and switching experts costs a few seconds. Its measurements (memory, accuracy on 60 requests) come from a Linux server running GGUF, not from a Mac running MLX. The rules were adjusted once after a first measurement on these same requests: the score on new requests may be a little lower.
 
-## 12. Historique des versions
+## 12. Version history
 
-| Version | Contenu |
+| Version | Contents |
 |---|---|
-| 0.1 beta | Atelier complet : Qwen3.5 4B, contrôleur FlyBrain entraînable, CLI, interface web et Electron, agents architecte, codeur et relecteur. |
-| 0.2 beta | FlyCoder devient uniquement un modèle Ollama : variante Gemma 4 12B (MLX, multi-tokens) et variante Qwen3.5 4B corrigée, installation en une commande, publication ollama.com, banc d'essai à tests cachés, atelier retiré. |
-| 0.3 beta | Routeur FlyBrain facultatif : règles et micro-modèle Qwen3.5 0.8B, expert 2B pour `flycoder:fast`, un seul expert en mémoire. Moins de RAM pour les demandes simples. Les modèles 0.2 sont inchangés. |
+| 0.1 beta | Full workshop: Qwen3.5 4B, trainable FlyBrain controller, CLI, web and Electron interfaces, architect, coder and reviewer agents. |
+| 0.2 beta | FlyCoder becomes an Ollama model only: Gemma 4 12B variant (MLX, multi-token) and a fixed Qwen3.5 4B variant, one-command install, ollama.com publishing, hidden-test benchmark, workshop removed. |
+| 0.3 beta | Optional FlyBrain router: rules and a Qwen3.5 0.8B micro-model, a 2B expert for `flycoder:fast`, a single expert in memory. Less RAM for simple requests. The 0.2 models are unchanged. |
 
-## 13. Licences
+## 13. Licenses
 
-- Code du dépôt : MIT, voir [license.md](license.md).
-- Poids : Apache 2.0 pour Gemma 4 et pour Qwen3.5. Les conditions de chaque base s'affichent avec `ollama show flycoder --license`.
+- Repository code: MIT, see [license.md](license.md).
+- Weights: Apache 2.0 for Gemma 4 and for Qwen3.5. Each base's terms are shown by `ollama show flycoder --license`.

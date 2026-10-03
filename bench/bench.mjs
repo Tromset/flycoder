@@ -127,7 +127,7 @@ export function summarize(model, results) {
 
 export function table(summaries) {
   const rows = summaries.map(s => `| ${s.model} | ${s.passed}/${s.total} (${(s.passRate * 100).toFixed(0)} %) | ${s.decodeTokensPerSecond?.toFixed(1) ?? '-'} | ${s.prefillTokensPerSecond?.toFixed(0) ?? '-'} | ${s.meanOutputTokens.toFixed(0)} | ${s.meanSecondsPerProblem.toFixed(1)} |`);
-  return ['| Modèle | Tests réussis | Génération (tok/s) | Lecture du prompt (tok/s) | Tokens produits / problème | Secondes / problème |', '|---|---|---|---|---|---|', ...rows].join('\n');
+  return ['| Model | Tests passed | Generation (tok/s) | Prompt processing (tok/s) | Tokens generated / problem | Seconds / problem |', '|---|---|---|---|---|---|', ...rows].join('\n');
 }
 
 async function main() {
@@ -175,7 +175,7 @@ async function main() {
   }
   save();
   console.log(table(report.models.map(m => m.summary)));
-  console.log(`\nDétails : ${out}`);
+  console.log(`\nDetails: ${out}`);
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(fs.realpathSync(process.argv[1])).href) {

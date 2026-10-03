@@ -29,11 +29,11 @@ for (const c of cases) {
 }
 const count = f => rows.filter(f).length;
 const decided = rows.filter(r => r.rule !== 'unsure');
-console.log(`Cas : ${rows.length} (${count(r => r.want === 'simple')} simples, ${count(r => r.want === 'hard')} difficiles)`);
-console.log(`Règles seules : ${decided.length} décidés, ${count(r => r.rule !== 'unsure' && r.rule === r.want)} justes, ${count(r => r.rule === 'unsure')} confiés au micro-modèle`);
-console.log(`Règles + micro-modèle : ${count(r => r.final === r.want)}/${rows.length} justes`);
-console.log(`  difficile envoyé au petit expert (perte de qualité) : ${count(r => r.want === 'hard' && r.final === 'simple')}`);
-console.log(`  simple envoyé au gros expert (temps et RAM en plus) : ${count(r => r.want === 'simple' && r.final === 'hard')}`);
+console.log(`Cases: ${rows.length} (${count(r => r.want === 'simple')} simple, ${count(r => r.want === 'hard')} hard)`);
+console.log(`Rules alone: ${decided.length} decided, ${count(r => r.rule !== 'unsure' && r.rule === r.want)} correct, ${count(r => r.rule === 'unsure')} handed to the micro-model`);
+console.log(`Rules + micro-model: ${count(r => r.final === r.want)}/${rows.length} correct`);
+console.log(`  hard sent to the small expert (quality loss): ${count(r => r.want === 'hard' && r.final === 'simple')}`);
+console.log(`  simple sent to the large expert (extra time and RAM): ${count(r => r.want === 'simple' && r.final === 'hard')}`);
 const times = rows.filter(r => r.modelMs).map(r => r.modelMs).sort((a, b) => a - b);
-if (times.length) console.log(`Micro-modèle : médiane ${times[Math.floor(times.length / 2)]} ms sur ${times.length} appels`);
-for (const r of rows.filter(r => r.final !== r.want)) console.log(`  ✗ voulu ${r.want}, obtenu ${r.final} (${r.rule}) : ${r.text.slice(0, 90).replace(/\n/g, ' ')}`);
+if (times.length) console.log(`Micro-model: median ${times[Math.floor(times.length / 2)]} ms over ${times.length} calls`);
+for (const r of rows.filter(r => r.final !== r.want)) console.log(`  ✗ wanted ${r.want}, got ${r.final} (${r.rule}): ${r.text.slice(0, 90).replace(/\n/g, ' ')}`);
