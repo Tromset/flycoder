@@ -37,7 +37,7 @@ export function ruleRoute(d) {
 }
 
 // Experts behind each name FlyBrain answers to. `prefix` lets the published
-// models be used directly, e.g. prefix 'delairvictor9/' for delairvictor9/flycoder:0.2-beta.
+// models be used directly, e.g. prefix 'Tromset/' for Tromset/flycoder:0.2-beta.
 export function profiles(prefix = '', { maxExpert = 'full' } = {}) {
   const tag = t => `${prefix}flycoder:${t}`;
   const normal = { simple: tag('0.2-beta-fast'), hard: tag(maxExpert === 'fast' ? '0.2-beta-fast' : '0.2-beta'), router: tag('router'), think: true };

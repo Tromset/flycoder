@@ -3,8 +3,8 @@
 A local coding model tuned for MacBook and Mac mini (Apple Silicon), packaged for Ollama.
 
 ```sh
-ollama run delairvictor9/flycoder         # Gemma 4 12B base, Macs with 16 GB or more
-ollama run delairvictor9/flycoder:fast    # Qwen3.5 4B base, Macs with 8 GB
+ollama run Tromset/flycoder         # Gemma 4 12B base, Macs with 16 GB or more
+ollama run Tromset/flycoder:fast    # Qwen3.5 4B base, Macs with 8 GB
 ```
 
 ## Tags
@@ -32,7 +32,7 @@ MLX tags need Ollama 0.31 or later on Apple Silicon.
 FlyBrain is a small Node server from the GitHub repository that sits in front of Ollama. It answers to `flycoder` and `flycoder:fast`, sends simple questions to a smaller expert, sends hard requests (and every agent request with tools) to the strong one, and keeps a single expert in memory. Measured on a 16 GB Linux server (GGUF, CPU): a simple request to `flycoder` uses 6.1 GiB instead of 10.5. Hard requests still use the strong model, so their quality is unchanged.
 
 ```sh
-node brain/flybrain.mjs --prefix delairvictor9/
+node brain/flybrain.mjs --prefix Tromset/
 OLLAMA_HOST=127.0.0.1:11435 ollama run flycoder
 ```
 

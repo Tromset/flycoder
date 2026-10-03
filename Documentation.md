@@ -47,16 +47,16 @@ ollama --version
 
 ### 3.1 From ollama.com
 
-FlyCoder is published at [ollama.com/delairvictor9/flycoder](https://ollama.com/delairvictor9/flycoder). One command is enough:
+FlyCoder is published at [ollama.com/Tromset/flycoder](https://ollama.com/Tromset/flycoder). One command is enough:
 
 ```sh
-ollama run delairvictor9/flycoder                       # main variant (Gemma 4 12B, MLX)
-ollama run delairvictor9/flycoder:fast                  # fast variant (Qwen3.5 4B, MLX)
-ollama run delairvictor9/flycoder:0.2-beta-gguf         # main, Intel Mac, Linux, Windows
-ollama run delairvictor9/flycoder:0.2-beta-fast-gguf    # fast, Intel Mac, Linux, Windows
+ollama run Tromset/flycoder                       # main variant (Gemma 4 12B, MLX)
+ollama run Tromset/flycoder:fast                  # fast variant (Qwen3.5 4B, MLX)
+ollama run Tromset/flycoder:0.2-beta-gguf         # main, Intel Mac, Linux, Windows
+ollama run Tromset/flycoder:0.2-beta-fast-gguf    # fast, Intel Mac, Linux, Windows
 ```
 
-Available tags: `latest` and `0.2-beta` (main), `fast` and `0.2-beta-fast` (fast), `0.2-beta-gguf` and `0.2-beta-fast-gguf` (portable). To call it simply `flycoder`: `ollama cp delairvictor9/flycoder flycoder`.
+Available tags: `latest` and `0.2-beta` (main), `fast` and `0.2-beta-fast` (fast), `0.2-beta-gguf` and `0.2-beta-fast-gguf` (portable). For now only the GGUF tags (`0.2-beta-gguf`, `0.2-beta-fast-gguf`, `0.2-beta-lite-gguf`, `router-gguf`) are online; the MLX tags arrive once they are pushed from an Apple Silicon Mac. Until then, Mac users install with `install.sh`. To call it simply `flycoder`: `ollama cp Tromset/flycoder flycoder`.
 
 ### 3.2 One-command installer
 
@@ -205,7 +205,7 @@ ollama launch codex --model flycoder      # Codex
 ollama launch opencode --model flycoder   # OpenCode
 ```
 
-If you got FlyCoder from ollama.com without `install.sh`, use the published name: `ollama launch claude --model delairvictor9/flycoder`.
+If you got FlyCoder from ollama.com without `install.sh`, use the published name: `ollama launch claude --model Tromset/flycoder`.
 
 `ollama launch --help` lists the other integrations, including VS Code, Copilot CLI, Cline, Qwen Code, Pi and Droid. Agents send long instructions and many files: Ollama recommends at least 64,000 tokens of context for them (section 6.2).
 
@@ -215,7 +215,7 @@ FlyBrain is a small, dependency-free Node 22 server that sits in front of Ollama
 
 ```sh
 node ~/.flycoder/brain/flybrain.mjs          # copied by install.sh; or npm run brain in this repository
-node brain/flybrain.mjs --prefix delairvictor9/   # with the models published on ollama.com
+node brain/flybrain.mjs --prefix Tromset/   # with the models published on ollama.com
 ```
 
 Options: `--port` (11435), `--ollama` (http://127.0.0.1:11434), `--prefix`, `--max-expert auto|full|fast`. With `auto`, the default, a Mac with less than 16 GB caps `flycoder` at the 4B.
@@ -336,7 +336,7 @@ On this server, the main variant solves almost three times as many problems, but
 
 ## 8. Publishing a version on ollama.com
 
-0.2 beta is published under the `delairvictor9` account. To publish a new version, follow these steps. The script refuses to push non-MLX builds under the main tags: build them on an Apple Silicon Mac.
+The GGUF tags of 0.2 beta are published under the `Tromset` account; the MLX tags must be pushed from an Apple Silicon Mac, because Ollama cannot build MLX models on Linux. To publish a new version, follow these steps. The script refuses to push non-MLX builds under the main tags: build them on an Apple Silicon Mac.
 
 1. Create an account on [ollama.com](https://ollama.com/signup). The username becomes the model's prefix (`<username>/flycoder`).
 2. Link the machine to the account: `ollama signin`, then confirm in the browser. Authorized machines are managed in the account settings, under Ollama keys; remove the ones you no longer use.
