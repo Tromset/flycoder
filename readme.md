@@ -2,6 +2,8 @@
 
 FlyCoder est un modèle de code local pour Ollama, réglé pour les MacBook et Mac mini Apple Silicon. Depuis la 0.2, FlyCoder est uniquement le modèle : l'ancien atelier (CLI, interface web, Electron, contrôleur FlyBrain) a été retiré. Vous l'utilisez directement avec `ollama run`, ou dans n'importe quel outil compatible Ollama.
 
+Documentation complète (installation, utilisation, API, réglages, banc d'essai, publication, dépannage) : [Documentation.md](Documentation.md).
+
 ## Installer en une commande
 
 Il faut [Ollama](https://ollama.com/download) 0.31 ou plus récent, ouvert.
