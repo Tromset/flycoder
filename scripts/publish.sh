@@ -3,7 +3,7 @@
 #   sh scripts/publish.sh <ollama.com username> [--gguf]
 # Prerequisites: an ollama.com account, then `ollama signin` once on this Mac.
 # The models must exist locally: run `sh install.sh --all` first.
-#   --gguf  also publish portable GGUF tags (0.2-beta-gguf, 0.2-beta-fast-gguf) for Intel Macs, Linux and Windows
+#   --gguf  also publish portable GGUF tags (0.2-beta-gguf, 0.2-beta-fast-gguf, 0.2-beta-lite-gguf, router-gguf) for Intel Macs, Linux and Windows
 set -eu
 
 VERSION=0.2-beta
@@ -25,8 +25,10 @@ push() { # push <local model> <remote tag>
 here=$(cd "$(dirname "$0")/.." && pwd)
 require "flycoder:$VERSION"
 require "flycoder:$VERSION-fast"
+require "flycoder:$VERSION-lite"
+require flycoder:router
 # The main tags must hold the Apple Silicon (MLX) builds, never a GGUF fallback.
-for model in "flycoder:$VERSION" "flycoder:$VERSION-fast"; do
+for model in "flycoder:$VERSION" "flycoder:$VERSION-fast" "flycoder:$VERSION-lite" flycoder:router; do
   [ "$(format "$model")" = nvfp4 ] || die "$model n'est pas la version MLX. Publiez depuis un Mac Apple Silicon après : sh install.sh --all"
 done
 
@@ -34,15 +36,24 @@ push "flycoder:$VERSION" "$VERSION"
 push "flycoder:$VERSION" latest
 push "flycoder:$VERSION-fast" "$VERSION-fast"
 push "flycoder:$VERSION-fast" fast
+# FlyBrain experts, used by: node brain/flybrain.mjs --prefix <user>/
+push "flycoder:$VERSION-lite" "$VERSION-lite"
+push flycoder:router router
 
 if [ "$gguf" = --gguf ]; then
   tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
   sed 's|^FROM gemma4:12b-mlx$|FROM gemma4:12b|' "$here/Modelfile" > "$tmp/Modelfile"
   sed 's|^FROM qwen3.5:4b-mlx$|FROM qwen3.5:4b|' "$here/Modelfile.fast" > "$tmp/Modelfile.fast"
+  sed 's|^FROM qwen3.5:2b-nvfp4$|FROM qwen3.5:2b|' "$here/Modelfile.lite" > "$tmp/Modelfile.lite"
+  sed 's|^FROM qwen3.5:0.8b-nvfp4$|FROM qwen3.5:0.8b|' "$here/Modelfile.router" > "$tmp/Modelfile.router"
   ollama create "flycoder:$VERSION-gguf" -f "$tmp/Modelfile"
   ollama create "flycoder:$VERSION-fast-gguf" -f "$tmp/Modelfile.fast"
+  ollama create "flycoder:$VERSION-lite-gguf" -f "$tmp/Modelfile.lite"
+  ollama create flycoder:router-gguf -f "$tmp/Modelfile.router"
   push "flycoder:$VERSION-gguf" "$VERSION-gguf"
   push "flycoder:$VERSION-fast-gguf" "$VERSION-fast-gguf"
+  push "flycoder:$VERSION-lite-gguf" "$VERSION-lite-gguf"
+  push flycoder:router-gguf router-gguf
 fi
 
 printf '\nPublié. Tout le monde peut maintenant lancer :\n  ollama run %s/flycoder        (Gemma 4 12B, Mac 16 Go et plus)\n  ollama run %s/flycoder:fast   (Qwen3.5 4B, Mac 8 Go)\n' "$user" "$user"

@@ -1,0 +1,13 @@
+# FlyCoder router: the micro-model FlyBrain asks when a request has no clear cue.
+# It only answers {"level":"simple"} or {"level":"hard"}; FlyBrain forces that JSON format.
+# Base: Qwen3.5 0.8B (Apache 2.0), NVFP4 on MLX. Build: ollama create flycoder:router -f Modelfile.router
+FROM qwen3.5:0.8b-nvfp4
+
+# The router reads at most 2,000 characters of the request.
+PARAMETER num_ctx 2048
+PARAMETER temperature 0
+
+SYSTEM """You route coding requests for FlyCoder. Read the user's request and classify it.
+"simple": a short factual question, a syntax reminder, an explanation of a concept, a one-line fix, a tiny standard function.
+"hard": anything that needs real reasoning: a bug to find, an algorithm, several functions or files, edge cases, performance, security, a design decision, or a precise specification.
+When unsure, answer "hard". Reply only with JSON: {"level": "simple"} or {"level": "hard"}."""

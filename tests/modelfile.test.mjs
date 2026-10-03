@@ -17,8 +17,11 @@ function parse(text) {
 const VARIANTS = [
   { file: 'Modelfile', tag: '0.2-beta', mlx: 'gemma4:12b-mlx', gguf: 'gemma4:12b', base: 'Gemma 4 12B by Google DeepMind', params: { num_ctx: '32768', temperature: '1', top_k: '64', top_p: '0.95' } },
   { file: 'Modelfile.fast', tag: '0.2-beta-fast', mlx: 'qwen3.5:4b-mlx', gguf: 'qwen3.5:4b', base: 'Qwen3.5 4B by the Qwen team at Alibaba',
-    params: { num_ctx: '16384', temperature: '0.6', top_k: '20', top_p: '0.95', min_p: '0', presence_penalty: '0', repeat_penalty: '1' } }
+    params: { num_ctx: '16384', temperature: '0.6', top_k: '20', top_p: '0.95', min_p: '0', presence_penalty: '0', repeat_penalty: '1' } },
+  { file: 'Modelfile.lite', tag: '0.2-beta-lite', mlx: 'qwen3.5:2b-nvfp4', gguf: 'qwen3.5:2b', base: 'Qwen3.5 2B by the Qwen team at Alibaba',
+    params: { num_ctx: '8192', temperature: '0.6', top_k: '20', top_p: '0.95', min_p: '0', presence_penalty: '0', repeat_penalty: '1' } }
 ];
+const ROUTER = { file: 'Modelfile.router', tag: 'router', mlx: 'qwen3.5:0.8b-nvfp4', gguf: 'qwen3.5:0.8b', params: { num_ctx: '2048', temperature: '0' } };
 const KNOWN = new Set(['num_ctx', 'temperature', 'top_k', 'top_p', 'min_p', 'presence_penalty', 'repeat_penalty', 'repeat_last_n', 'seed', 'stop', 'num_predict', 'draft_num_predict']);
 
 for (const v of VARIANTS) {
@@ -32,21 +35,32 @@ for (const v of VARIANTS) {
   });
 }
 
-test('both variants share one system prompt, apart from the base model sentence', () => {
-  const [a, b] = VARIANTS.map(v => parse(read(v.file)).system.replace(v.base, '<base>'));
-  assert.equal(a, b);
+test('every expert shares one system prompt, apart from the base model sentence', () => {
+  const [a, ...others] = VARIANTS.map(v => parse(read(v.file)).system.replace(v.base, '<base>'));
+  for (const b of others) assert.equal(b, a);
   assert.match(a, /^You are FlyCoder 0\.2 beta/);
   assert.ok(a.length < 2500, 'keep the system prompt short: it is processed on every new conversation');
 });
 
+test('Modelfile.router is a tiny deterministic classifier that answers simple or hard', () => {
+  const m = parse(read(ROUTER.file));
+  assert.deepEqual(m.from, [ROUTER.mlx]);
+  assert.deepEqual(m.unknown, []);
+  assert.deepEqual(m.params, ROUTER.params);
+  assert.match(m.system, /"simple"/); assert.match(m.system, /"hard"/);
+  assert.match(m.system, /When unsure, answer "hard"/);
+});
+
 test('installer and publisher agree with the Modelfiles and the package version', () => {
   const install = read('install.sh'), publish = read('scripts/publish.sh'), pkg = JSON.parse(read('package.json'));
-  assert.match(pkg.version, /^0\.2\.0-beta\./);
+  assert.match(pkg.version, /^0\.3\.0-beta\./);
   for (const script of [install, publish]) assert.match(script, /^VERSION=0\.2-beta$/m);
-  for (const v of VARIANTS) {
-    assert.ok(install.includes(`build ${v.file} "$VERSION${v.tag.slice('0.2-beta'.length)}" ${v.mlx} ${v.gguf}`), `install.sh builds ${v.file}`);
+  for (const v of [...VARIANTS, ROUTER]) {
+    const tag = v === ROUTER ? 'router' : `"$VERSION${v.tag.slice('0.2-beta'.length)}"`;
+    assert.ok(install.includes(`build ${v.file} ${tag} ${v.mlx} ${v.gguf}`), `install.sh builds ${v.file}`);
     assert.ok(publish.includes(`FROM ${v.mlx}$|FROM ${v.gguf}`), `publish.sh maps ${v.mlx} to ${v.gguf}`);
   }
+  for (const file of ['brain/router.mjs', 'brain/flybrain.mjs']) assert.ok(install.includes(file), `install.sh installs ${file}`);
 });
 
 test('shell scripts parse with POSIX sh', () => {
