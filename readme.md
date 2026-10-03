@@ -6,7 +6,14 @@ Documentation complète (installation, utilisation, API, réglages, banc d'essai
 
 ## Installer en une commande
 
-Il faut [Ollama](https://ollama.com/download) 0.31 ou plus récent, ouvert.
+Il faut [Ollama](https://ollama.com/download) 0.31 ou plus récent, ouvert. FlyCoder est publié sur [ollama.com/delairvictor9/flycoder](https://ollama.com/delairvictor9/flycoder) :
+
+```sh
+ollama run delairvictor9/flycoder        # Gemma 4 12B, Mac 16 Go et plus
+ollama run delairvictor9/flycoder:fast   # Qwen3.5 4B, Mac 8 Go
+```
+
+Ou, pour l'installer sous le nom court `flycoder` avec la variante choisie selon la mémoire du Mac :
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/Tromset/flycoder/main/install.sh | sh
@@ -14,12 +21,6 @@ ollama run flycoder
 ```
 
 L'installateur détecte la mémoire du Mac et construit la bonne variante dans votre Ollama local : `flycoder:0.2-beta` à partir de 16 Go, `flycoder:0.2-beta-fast` en dessous. Dans les deux cas, `ollama run flycoder` fonctionne. Options : `sh -s -- --fast` (variante rapide), `sh -s -- --all` (les deux), `sh -s -- --gguf` (poids GGUF pour Mac Intel, Linux ou Windows).
-
-Une fois publié sur ollama.com (voir plus bas), il suffit de :
-
-```sh
-ollama run <utilisateur>/flycoder
-```
 
 ## Les deux variantes
 
@@ -99,7 +100,7 @@ curl http://localhost:11434/api/chat -d '{"model":"flycoder","messages":[{"role"
 4. Publiez : `sh scripts/publish.sh <utilisateur>` (ajoutez `--gguf` pour publier aussi les versions Mac Intel, Linux et Windows).
 5. Collez le texte de [docs/ollama-model-page.md](docs/ollama-model-page.md) dans la description de la page du modèle.
 
-Ensuite, n'importe qui peut lancer `ollama run <utilisateur>/flycoder` ou `ollama run <utilisateur>/flycoder:fast`.
+Ensuite, n'importe qui peut lancer `ollama run <utilisateur>/flycoder` ou `ollama run <utilisateur>/flycoder:fast`. La 0.2 beta est publiée sous `delairvictor9`.
 
 ## Contenu du dépôt
 

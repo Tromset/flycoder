@@ -47,14 +47,16 @@ ollama --version
 
 ### 3.1 Depuis ollama.com
 
-Une fois FlyCoder publié (section 8), une seule commande suffit :
+FlyCoder est publié sur [ollama.com/delairvictor9/flycoder](https://ollama.com/delairvictor9/flycoder). Une seule commande suffit :
 
 ```sh
-ollama run <utilisateur>/flycoder        # variante principale (Gemma 4 12B)
-ollama run <utilisateur>/flycoder:fast   # variante rapide (Qwen3.5 4B)
+ollama run delairvictor9/flycoder                       # variante principale (Gemma 4 12B, MLX)
+ollama run delairvictor9/flycoder:fast                  # variante rapide (Qwen3.5 4B, MLX)
+ollama run delairvictor9/flycoder:0.2-beta-gguf         # principale, Mac Intel, Linux, Windows
+ollama run delairvictor9/flycoder:0.2-beta-fast-gguf    # rapide, Mac Intel, Linux, Windows
 ```
 
-Remplacez `<utilisateur>` par le nom du compte ollama.com qui a publié le modèle.
+Tags disponibles : `latest` et `0.2-beta` (principale), `fast` et `0.2-beta-fast` (rapide), `0.2-beta-gguf` et `0.2-beta-fast-gguf` (portables). Pour l'appeler simplement `flycoder` : `ollama cp delairvictor9/flycoder flycoder`.
 
 ### 3.2 Installateur en une commande
 
@@ -301,15 +303,15 @@ Sur ce serveur, la variante principale réussit presque trois fois plus d'exerci
 
 ## 8. Publier une version sur ollama.com
 
-À faire depuis un Mac Apple Silicon. La publication depuis un autre système refuse de pousser des versions non MLX sous les tags principaux.
+La 0.2 beta est publiée sous le compte `delairvictor9`. Pour publier une nouvelle version, suivez ces étapes. Le script refuse de pousser des versions non MLX sous les tags principaux : construisez-les sur un Mac Apple Silicon.
 
 1. Créez un compte sur [ollama.com](https://ollama.com/signup). Le nom d'utilisateur devient le préfixe du modèle (`<utilisateur>/flycoder`).
 2. Reliez la machine au compte : `ollama signin`, puis validez dans le navigateur. Les machines autorisées se gèrent dans les réglages du compte, rubrique des clés Ollama ; retirez celles dont vous ne vous servez plus.
 3. Construisez les deux variantes : `sh install.sh --all`.
 4. Publiez : `sh scripts/publish.sh <utilisateur>`. Ajoutez `--gguf` pour publier aussi `0.2-beta-gguf` et `0.2-beta-fast-gguf`.
-5. Sur la page `https://ollama.com/<utilisateur>/flycoder`, collez le texte de [docs/ollama-model-page.md](docs/ollama-model-page.md) en remplaçant `<user>`.
+5. Sur la page `https://ollama.com/<utilisateur>/flycoder`, collez le texte de [docs/ollama-model-page.md](docs/ollama-model-page.md).
 
-Tags publiés : `0.2-beta` et `latest` (principale), `0.2-beta-fast` et `fast` (rapide), plus les deux tags GGUF avec `--gguf`. Les poids de base sont envoyés avec le modèle : prévoyez environ 12 Go d'envoi, 23 Go avec `--gguf`.
+Tags publiés : `0.2-beta` et `latest` (principale), `0.2-beta-fast` et `fast` (rapide), plus les deux tags GGUF avec `--gguf`. Les poids déjà présents sur le registre d'Ollama ne sont pas renvoyés : pour la 0.2, dont les bases viennent de la bibliothèque officielle, la publication des six tags n'a pris que quelques minutes.
 
 Pour une nouvelle version, mettez à jour la version dans `package.json`, `install.sh`, `scripts/publish.sh` et la consigne système des deux Modelfiles. `npm test` vérifie qu'ils concordent.
 
