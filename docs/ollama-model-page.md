@@ -3,8 +3,8 @@
 A local coding model tuned for MacBook and Mac mini (Apple Silicon), packaged for Ollama.
 
 ```sh
-ollama run <user>/flycoder         # Gemma 4 12B base, Macs with 16 GB or more
-ollama run <user>/flycoder:fast    # Qwen3.5 4B base, Macs with 8 GB
+ollama run delairvictor9/flycoder         # Gemma 4 12B base, Macs with 16 GB or more
+ollama run delairvictor9/flycoder:fast    # Qwen3.5 4B base, Macs with 8 GB
 ```
 
 ## Tags
