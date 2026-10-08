@@ -37,13 +37,17 @@ export function ruleRoute(d) {
 }
 
 // Experts behind each name FlyBrain answers to. `prefix` lets the published
-// models be used directly, e.g. prefix 'Tromset/' for Tromset/flycoder:0.2-beta.
+// models be used directly, e.g. prefix 'Tromset/' for Tromset/flycoder0.3.
+// flycoder0.3pro is not routed: FlyBrain passes it through like any other model.
 export function profiles(prefix = '', { maxExpert = 'full' } = {}) {
-  const tag = t => `${prefix}flycoder:${t}`;
-  const normal = { simple: tag('0.2-beta-fast'), hard: tag(maxExpert === 'fast' ? '0.2-beta-fast' : '0.2-beta'), router: tag('router'), think: true };
+  const name = n => `${prefix}${n}`;
+  const normal = { simple: name('flycoder0.3fast'), hard: name(maxExpert === 'fast' ? 'flycoder0.3fast' : 'flycoder0.3'), router: name('flycoder0.3:router'), think: true };
   // The fast profile has no micro-model: an unclear request keeps the 4B, so it never answers worse than before.
-  const fast = { simple: tag('0.2-beta-lite'), hard: tag('0.2-beta-fast'), router: null, think: false };
-  return { flycoder: normal, 'flycoder:latest': normal, 'flycoder:fast': fast };
+  const fast = { simple: name('flycoder0.3:lite'), hard: name('flycoder0.3fast'), router: null, think: false };
+  const table = {};
+  for (const n of ['flycoder', 'flycoder0.3']) table[n] = table[`${n}:latest`] = table[name(n)] = table[`${name(n)}:latest`] = normal;
+  for (const n of ['flycoder0.3fast']) table[n] = table[`${n}:latest`] = table[name(n)] = table[`${name(n)}:latest`] = fast;
+  return table;
 }
 
 export class Memory {

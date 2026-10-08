@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // FlyCoder bench: pass rate and speed of Ollama models on hidden-test coding problems.
-// Usage: node bench/bench.mjs --models flycoder:0.2-beta,flycoder:0.2-beta-fast [--think off]
+// Usage: node bench/bench.mjs --models flycoder0.3,flycoder0.3fast [--think off]
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -132,7 +132,7 @@ export function table(summaries) {
 
 async function main() {
   const { values } = parseArgs({ options: {
-    models: { type: 'string', default: 'flycoder:0.2-beta,flycoder:0.2-beta-fast' }, host: { type: 'string', default: process.env.OLLAMA_HOST ? `http://${process.env.OLLAMA_HOST.replace(/^https?:\/\//, '')}` : 'http://127.0.0.1:11434' },
+    models: { type: 'string', default: 'flycoder0.3,flycoder0.3fast' }, host: { type: 'string', default: process.env.OLLAMA_HOST ? `http://${process.env.OLLAMA_HOST.replace(/^https?:\/\//, '')}` : 'http://127.0.0.1:11434' },
     think: { type: 'string', default: 'default' }, samples: { type: 'string', default: '1' }, only: { type: 'string' },
     'max-tokens': { type: 'string', default: '8192' }, 'num-ctx': { type: 'string' }, out: { type: 'string' }, 'no-sandbox': { type: 'boolean' }, help: { type: 'boolean', short: 'h' } } });
   if (values.help) return console.log('node bench/bench.mjs --models a,b [--think on|off|default] [--samples n] [--only id,id] [--max-tokens n] [--num-ctx n] [--out file.json] [--no-sandbox]');

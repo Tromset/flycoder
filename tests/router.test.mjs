@@ -32,15 +32,15 @@ test('digest reads native, OpenAI and Anthropic shapes', () => {
 
 test('route: the micro-model settles unclear requests, and any failure keeps quality', async () => {
   const profile = profiles().flycoder, body = user('Écris une fonction qui met une chaîne en majuscules');
-  assert.equal((await route('flycoder', body, { profile, askRouter: async () => 'simple' })).expert, 'flycoder:0.2-beta-fast');
-  assert.equal((await route('flycoder', body, { profile, askRouter: async () => 'hard' })).expert, 'flycoder:0.2-beta');
+  assert.equal((await route('flycoder', body, { profile, askRouter: async () => 'simple' })).expert, 'flycoder0.3fast');
+  assert.equal((await route('flycoder', body, { profile, askRouter: async () => 'hard' })).expert, 'flycoder0.3');
   assert.equal((await route('flycoder', body, { profile, askRouter: async () => 'maybe' })).level, 'hard');
   assert.equal((await route('flycoder', body, { profile, askRouter: async () => { throw new Error('down'); } })).level, 'hard');
   // No micro-model call when the hard expert is already in memory.
   const skipped = await route('flycoder', body, { profile, loaded: profile.hard, askRouter: () => assert.fail('router called') });
   assert.equal(skipped.reason, 'hard expert already loaded');
-  // flycoder:fast has no micro-model: unclear requests keep the 4B.
-  assert.equal((await route('flycoder:fast', body, { profile: profiles()['flycoder:fast'] })).expert, 'flycoder:0.2-beta-fast');
+  // flycoder0.3fast has no micro-model: unclear requests keep the 4B.
+  assert.equal((await route('flycoder0.3fast', body, { profile: profiles()['flycoder0.3fast'] })).expert, 'flycoder0.3fast');
 });
 
 test('route: a conversation keeps its expert and can only move up', async () => {
@@ -56,8 +56,12 @@ test('route: a conversation keeps its expert and can only move up', async () => 
 });
 
 test('profiles: prefix for published models and the 8 GB cap', () => {
-  assert.equal(profiles('Tromset/').flycoder.hard, 'Tromset/flycoder:0.2-beta');
-  assert.equal(profiles('', { maxExpert: 'fast' }).flycoder.hard, 'flycoder:0.2-beta-fast');
+  const published = profiles('Tromset/');
+  assert.equal(published.flycoder.hard, 'Tromset/flycoder0.3');
+  assert.equal(published['Tromset/flycoder0.3'].router, 'Tromset/flycoder0.3:router');
+  assert.equal(published['Tromset/flycoder0.3fast:latest'].simple, 'Tromset/flycoder0.3:lite');
+  assert.equal(published['flycoder0.3pro'], undefined, 'the pro model is passed through, never routed');
+  assert.equal(profiles('', { maxExpert: 'fast' }).flycoder.hard, 'flycoder0.3fast');
   assert.equal(defaultMaxExpert(8 * 2 ** 30), 'fast');
   assert.equal(defaultMaxExpert(16 * 2 ** 30), 'full');
 });
@@ -110,7 +114,7 @@ test('FlyBrain server rewrites the model, streams the answer and keeps one exper
   const post = (path, body) => fetch(base + path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
   try {
     const simple = await post('/api/chat', { model: 'flycoder', ...user('How do I reverse a list in Python?') });
-    assert.equal(simple.headers.get('x-flybrain-expert'), 'flycoder:0.2-beta-fast');
+    assert.equal(simple.headers.get('x-flybrain-expert'), 'flycoder0.3fast');
     assert.match(await simple.text(), /"done":true/);
     assert.equal(ollama.seen.at(-1).think, true, 'normal profile thinks by default');
 
@@ -119,13 +123,13 @@ test('FlyBrain server rewrites the model, streams the answer and keeps one exper
     await unclear.text();
 
     const hard = await post('/v1/messages', { model: 'flycoder', max_tokens: 10, tools: [{ name: 'read', input_schema: {} }], messages: [{ role: 'user', content: 'hi' }] });
-    assert.equal(hard.headers.get('x-flybrain-expert'), 'flycoder:0.2-beta');
+    assert.equal(hard.headers.get('x-flybrain-expert'), 'flycoder0.3');
     await hard.text();
-    assert.deepEqual([...ollama.loaded], ['flycoder:0.2-beta'], 'small expert and micro-model unloaded before the 12B');
+    assert.deepEqual([...ollama.loaded], ['flycoder0.3'], 'small expert and micro-model unloaded before the 9B');
     assert.equal(ollama.maxLoaded(), 1);
 
-    const show = await post('/api/show', { model: 'flycoder:fast' });
-    assert.equal((await show.json()).model, 'flycoder:0.2-beta-fast');
+    const show = await post('/api/show', { model: 'flycoder0.3fast' });
+    assert.equal((await show.json()).model, 'flycoder0.3fast');
     const other = await post('/api/chat', { model: 'llama3', ...user('hi') });
     assert.equal(other.headers.get('x-flybrain-expert'), null);
     await other.text();

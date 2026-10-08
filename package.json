@@ -1,6 +1,6 @@
 {
   "name": "flycoder",
-  "version": "0.3.0-beta.1",
+  "version": "0.3.0",
   "private": true,
   "description": "FlyCoder: a local coding model for Ollama, tuned for MacBook and Mac mini",
   "scripts": {
