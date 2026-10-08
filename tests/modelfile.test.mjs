@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { execFileSync } from 'node:child_process';
+import { PROBLEMS } from '../bench/problems.mjs';
 
 const read = file => fs.readFileSync(new URL(`../${file}`, import.meta.url), 'utf8');
 // Minimal Modelfile reader: FROM, REQUIRES, PARAMETER, and the triple-quoted SYSTEM and MESSAGE blocks.
@@ -66,15 +67,16 @@ test('flycoder0.3pro has its own agent workflow on top of the shared rules', () 
 test("the pro example conversation shows code that passes its own tests", () => {
   const messages = parse(read(PRO.file)).messages;
   assert.deepEqual(messages.map(m => m.role), ['user', 'assistant']);
+  // An example that solves a bench problem would hand the model the answer and inflate its score.
+  for (const p of PROBLEMS) assert.ok(!messages[0].content.includes(p.entry), `the example must not be the bench problem ${p.id}`);
   assert.ok(!messages[1].content.includes('"""'), 'triple double quotes would end the MESSAGE block');
   const [code, tests] = [...messages[1].content.matchAll(/```python\n([\s\S]*?)```/g)].map(m => m[1]);
   assert.match(tests, /pytest/);
   // Run the example with plain asserts (pytest is not needed): the valid and invalid cases of its tests.
-  const valid = [...tests.matchAll(/\("([^"]*)", (\d+)\)/g)].map(m => [m[1], Number(m[2])]);
-  const invalid = JSON.parse(tests.match(/"text", (\[[^\]]*\])/)[1]);
+  const [valid, invalid] = [...tests.matchAll(/"text", (\[[^\]]*\])/g)].map(m => JSON.parse(m[1].replace(/,\s*\]$/, ']')));
   assert.ok(valid.length >= 5 && invalid.length >= 5);
-  const check = `${code}\nfor text, seconds in ${JSON.stringify(valid)}:\n    assert parse_duration(text) == seconds, text\n` +
-    `for text in ${JSON.stringify(invalid)}:\n    try:\n        parse_duration(text)\n    except ValueError:\n        continue\n    raise AssertionError(text)\nprint("ok")\n`;
+  const check = `${code}\nfor text in ${JSON.stringify(valid)}:\n    assert is_valid_ipv4(text), text\n` +
+    `for text in ${JSON.stringify(invalid)}:\n    assert not is_valid_ipv4(text), text\nprint("ok")\n`;
   assert.equal(execFileSync('python3', ['-c', check], { encoding: 'utf8' }).trim(), 'ok');
 });
 
