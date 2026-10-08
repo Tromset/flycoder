@@ -35,53 +35,49 @@ As an agent with tools: read the relevant files before editing them, change as l
 Format: each file goes in one fenced code block with a language tag, preceded by its path. Keep explanations short and write them in the user's language."""
 
 # One worked exchange that shows the expected shape of an answer: contract, code, tests, how to run them.
-MESSAGE user """Write a Python function parse_duration(text) that turns durations like "1h30m" or "45s" into seconds. Invalid input must raise ValueError."""
-MESSAGE assistant """Assumption: units are h, m and s, each used at most once and in that order, with no spaces between parts ("1h 30m" is rejected); a non-string raises TypeError.
+MESSAGE user """Write a Python function is_valid_ipv4(text) that returns True for a valid dotted-quad IPv4 address and False otherwise."""
+MESSAGE assistant """Assumption: four decimal parts from 0 to 255 separated by dots, ASCII digits only, no leading zeros ("01.2.3.4" is rejected because some tools read it as octal), no surrounding spaces; a non-string raises TypeError.
 
-`duration.py`
+`ipv4.py`
 ```python
-import re
-
-_SECONDS = {"h": 3600, "m": 60, "s": 1}
-_PART = re.compile(r"(\d+)([hms])")
-
-
-def parse_duration(text: str) -> int:
-    '''Return the number of seconds in a duration such as "1h30m" or "45s".'''
+def is_valid_ipv4(text: str) -> bool:
+    '''Return True if text is a dotted-quad IPv4 address such as "192.168.0.1".'''
     if not isinstance(text, str):
         raise TypeError("text must be a string")
-    value = text.strip().lower()
-    parts = _PART.findall(value)
-    units = [unit for _, unit in parts]
-    # Every character must belong to a part, and units must appear once, in h-m-s order.
-    if not parts or _PART.sub("", value) or units != sorted(set(units), key="hms".index):
-        raise ValueError(f"invalid duration: {text!r}")
-    return sum(int(number) * _SECONDS[unit] for number, unit in parts)
+    parts = text.split(".")
+    if len(parts) != 4:
+        return False
+    for part in parts:
+        # ASCII digits only (str.isdigit also accepts other scripts), no sign, no leading zero.
+        if not part.isascii() or not part.isdigit() or (len(part) > 1 and part[0] == "0"):
+            return False
+        if int(part) > 255:
+            return False
+    return True
 ```
 
-`test_duration.py`
+`test_ipv4.py`
 ```python
 import pytest
 
-from duration import parse_duration
+from ipv4 import is_valid_ipv4
 
 
-@pytest.mark.parametrize("text, seconds", [
-    ("45s", 45), ("1h30m", 5400), ("2h", 7200), (" 10M ", 600), ("1h0m5s", 3605), ("0s", 0),
+@pytest.mark.parametrize("text", ["0.0.0.0", "192.168.0.1", "255.255.255.255", "10.0.0.10", "1.2.3.4"])
+def test_valid(text):
+    assert is_valid_ipv4(text)
+
+
+@pytest.mark.parametrize("text", [
+    "", "1.2.3", "1.2.3.4.5", "256.1.1.1", "01.2.3.4", "1.2.3.-4", "1.2.3.4 ", "a.b.c.d", "1..2.3", "١.2.3.4",
 ])
-def test_valid(text, seconds):
-    assert parse_duration(text) == seconds
-
-
-@pytest.mark.parametrize("text", ["", "   ", "abc", "10", "1h1h", "30m1h", "1.5h", "-5s", "1h 30m"])
 def test_invalid(text):
-    with pytest.raises(ValueError):
-        parse_duration(text)
+    assert not is_valid_ipv4(text)
 
 
 def test_not_a_string():
     with pytest.raises(TypeError):
-        parse_duration(90)
+        is_valid_ipv4(1234)
 ```
 
-Run: `python -m pytest test_duration.py`. Limit: no days or fractional values; add them to `_SECONDS` and the pattern if you need them."""
+Run: `python -m pytest test_ipv4.py`. Limit: IPv6 and CIDR suffixes such as "/24" are rejected; use the standard `ipaddress` module if you need them."""
