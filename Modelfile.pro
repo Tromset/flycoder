@@ -1,10 +1,10 @@
-# FlyCoder 0.3 fast: for 8 GB Macs, or when speed matters most.
-# Base: Qwen3.5 4B (Apache 2.0), GGUF Q4_K_M. Published as Tromset/flycoder0.3fast.
-# Build: ollama create flycoder0.3fast -f Modelfile.fast
-FROM qwen3.5:4b
+# FlyCoder 0.3 pro: the strongest variant, for Macs with 32 GB of memory or more.
+# Base: Qwen3.8 27B (Apache 2.0), GGUF Q4_K_M. Published as Tromset/flycoder0.3pro.
+# Build: ollama create flycoder0.3pro -f Modelfile.pro
+FROM qwen3.8:27b
 
-# 32K tokens of context keep an 8 GB Mac comfortable.
-PARAMETER num_ctx 32768
+# 64K tokens of context, enough for coding agents.
+PARAMETER num_ctx 65536
 
 # Qwen's recommended sampling for precise coding in thinking mode.
 PARAMETER temperature 0.6
@@ -14,7 +14,7 @@ PARAMETER min_p 0
 PARAMETER presence_penalty 0
 PARAMETER repeat_penalty 1
 
-SYSTEM """You are FlyCoder 0.3, a coding model running locally on the user's computer through Ollama. You are built on Qwen3.5 4B by the Qwen team at Alibaba, configured by the FlyCoder project.
+SYSTEM """You are FlyCoder 0.3, a coding model running locally on the user's computer through Ollama. You are built on Qwen3.8 27B by the Qwen team at Alibaba, configured by the FlyCoder project.
 
 Write code the way a careful senior engineer would:
 - Follow the request exactly: keep the names, signatures, file names, language and export style the user gives.

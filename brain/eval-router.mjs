@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 // Measures how well FlyBrain routes labelled prompts: rules alone, then rules + micro-model.
-// Usage: node brain/eval-router.mjs [--ollama http://127.0.0.1:11434] [--router flycoder:router]
+// Usage: node brain/eval-router.mjs [--ollama http://127.0.0.1:11434] [--router flycoder0.3:router]
 import fs from 'node:fs';
 import { parseArgs } from 'node:util';
 import { digest, ruleRoute } from './router.mjs';
 import { PROBLEMS } from '../bench/problems.mjs';
 import { instruction } from '../bench/bench.mjs';
 
-const { values } = parseArgs({ options: { ollama: { type: 'string', default: 'http://127.0.0.1:11434' }, router: { type: 'string', default: 'flycoder:router' } } });
+const { values } = parseArgs({ options: { ollama: { type: 'string', default: 'http://127.0.0.1:11434' }, router: { type: 'string', default: 'flycoder0.3:router' } } });
 const labelled = JSON.parse(fs.readFileSync(new URL('../tests/fixtures/route-prompts.json', import.meta.url), 'utf8'));
 const cases = [...labelled.simple.map(text => ({ text, want: 'simple' })), ...labelled.hard.map(text => ({ text, want: 'hard' })),
   ...PROBLEMS.map(p => ({ text: instruction(p), want: 'hard' }))];

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// FlyBrain: an Ollama-compatible server that answers to `flycoder` and `flycoder:fast`,
+// FlyBrain: an Ollama-compatible server that answers to `flycoder0.3` and `flycoder0.3fast`,
 // routes each request to one expert model and keeps a single expert in memory.
 // Usage: node brain/flybrain.mjs [--port 11435] [--ollama http://127.0.0.1:11434] [--prefix Tromset/] [--max-expert auto|full|fast]
 import http from 'node:http';
@@ -87,7 +87,7 @@ export function createFlyBrain({ ollama = 'http://127.0.0.1:11434', prefix = '',
   }));
 }
 
-// Below 16 GB the large expert does not fit next to the system: cap at the 4B.
+// Below 16 GB the 9B does not fit next to the system and the 4B: cap at the 4B.
 export function defaultMaxExpert(totalBytes = os.totalmem()) { return totalBytes / 2 ** 30 >= 15 ? 'full' : 'fast'; }
 
 function main() {
@@ -98,7 +98,7 @@ function main() {
   const maxExpert = values['max-expert'] === 'auto' ? defaultMaxExpert() : values['max-expert'];
   if (!['full', 'fast'].includes(maxExpert)) throw new Error('--max-expert must be auto, full or fast');
   const server = createFlyBrain({ ollama: values.ollama, prefix: values.prefix, maxExpert });
-  server.listen(Number(values.port), values.host, () => console.error(`FlyBrain listening on http://${values.host}:${values.port} (Ollama: ${values.ollama}, max expert: ${maxExpert}). Models: flycoder, flycoder:fast`));
+  server.listen(Number(values.port), values.host, () => console.error(`FlyBrain listening on http://${values.host}:${values.port} (Ollama: ${values.ollama}, max expert: ${maxExpert}). Models: flycoder0.3, flycoder0.3fast`));
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(fs.realpathSync(process.argv[1])).href) {

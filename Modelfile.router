@@ -1,7 +1,8 @@
 # FlyCoder router: the micro-model FlyBrain asks when a request has no clear cue.
 # It only answers {"level":"simple"} or {"level":"hard"}; FlyBrain forces that JSON format.
-# Base: Qwen3.5 0.8B (Apache 2.0), NVFP4 on MLX. Build: ollama create flycoder:router -f Modelfile.router
-FROM qwen3.5:0.8b-nvfp4
+# Base: Qwen3.5 0.8B (Apache 2.0), GGUF. Published as Tromset/flycoder0.3:router.
+# Build: ollama create flycoder0.3:router -f Modelfile.router
+FROM qwen3.5:0.8b
 
 # The router reads at most 2,000 characters of the request.
 PARAMETER num_ctx 2048

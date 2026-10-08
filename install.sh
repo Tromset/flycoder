@@ -1,15 +1,16 @@
 #!/bin/sh
-# FlyCoder 0.2 beta installer: builds the FlyCoder model inside your local Ollama.
+# FlyCoder 0.3 installer: builds FlyCoder inside your local Ollama, picked from your memory.
 #   curl -fsSL https://raw.githubusercontent.com/Tromset/flycoder/main/install.sh | sh
-#   sh install.sh [--fast | --all] [--gguf] [--no-brain]
-#     --fast      install only flycoder:0.2-beta-fast (Qwen3.5 4B, 8 GB Macs, maximum speed)
-#     --all       install both variants
-#     --gguf      use the portable GGUF weights instead of MLX (Intel Macs, Linux, Windows)
-#     --no-brain  skip the FlyBrain experts (flycoder:router, flycoder:0.2-beta-lite)
+#   sh install.sh [--fast | --pro | --all] [--mlx] [--no-brain]
+#     --fast      install flycoder0.3fast (Qwen3.5 4B, 8 GB Macs, maximum speed)
+#     --pro       install flycoder0.3pro (Qwen3.8 27B, 32 GB Macs or more)
+#     --all       install all three variants
+#     --mlx       use Ollama's MLX engine on Apple Silicon (faster, needs Ollama 0.31+); default: portable GGUF
+#     --no-brain  skip the FlyBrain experts (flycoder0.3:router, flycoder0.3:lite)
+# Without installing anything, the published models also work: ollama run Tromset/flycoder0.3
 set -eu
 
-VERSION=0.2-beta
-MIN_OLLAMA=0.31.0
+VERSION=0.3
 REF=${FLYCODER_REF:-main}
 RAW=https://raw.githubusercontent.com/Tromset/flycoder/$REF
 
@@ -17,15 +18,16 @@ say() { printf '%s\n' "$@"; }
 die() { printf 'FlyCoder: %s\n' "$*" >&2; exit 1; }
 
 choice=auto
-engine=auto
+engine=gguf
 brain=yes
 for arg in "$@"; do
   case $arg in
     --fast) choice=fast ;;
+    --pro) choice=pro ;;
     --all) choice=all ;;
-    --gguf) engine=gguf ;;
+    --mlx) engine=mlx ;;
     --no-brain) brain=no ;;
-    -h|--help) sed -n '2,9p' "$0" 2>/dev/null || true; exit 0 ;;
+    -h|--help) sed -n '2,10p' "$0" 2>/dev/null || true; exit 0 ;;
     *) die "unknown option: $arg" ;;
   esac
 done
@@ -39,13 +41,15 @@ version_ge() {
 }
 current=$(ollama --version 2>/dev/null | sed -n 's/.*version is \([0-9][0-9.]*\).*/\1/p' | head -n 1)
 [ -n "$current" ] || die "could not read the Ollama version."
-version_ge "$current" "$MIN_OLLAMA" || die "Ollama $current is too old. FlyCoder $VERSION needs Ollama $MIN_OLLAMA or later: https://ollama.com/download"
+need() { # need <minimum Ollama version> <what>
+  version_ge "$current" "$1" || die "Ollama $current is too old: $2 needs Ollama $1 or later. Update it from https://ollama.com/download, then run this command again."
+}
+need 0.30.0 "FlyCoder $VERSION (Qwen3.5)"
+[ "$engine" = mlx ] && need 0.31.0 "the MLX engine"
 
 os=$(uname -s)
 arch=$(uname -m)
-if [ "$engine" = auto ]; then
-  if [ "$os" = Darwin ] && [ "$arch" = arm64 ]; then engine=mlx; else engine=gguf; fi
-fi
+[ "$engine" = gguf ] || { [ "$os" = Darwin ] && [ "$arch" = arm64 ]; } || die "--mlx needs an Apple Silicon Mac."
 
 case $os in
   Darwin) memory_gb=$(( $(sysctl -n hw.memsize) / 1073741824 )) ;;
@@ -55,8 +59,11 @@ esac
 
 if [ "$choice" = auto ]; then
   # 16 GB machines report a little less than 16 GiB of usable memory.
-  if [ "$memory_gb" -ge 15 ]; then choice=default; else choice=fast; fi
+  if [ "$memory_gb" -ge 30 ]; then choice=pro
+  elif [ "$memory_gb" -ge 15 ]; then choice=default
+  else choice=fast; fi
 fi
+case $choice in pro|all) need 0.32.12 "flycoder0.3pro (Qwen3.8)" ;; esac
 
 # Modelfiles come from this checkout when present, otherwise from GitHub.
 here=$(cd "$(dirname "$0")" 2>/dev/null && pwd || echo .)
@@ -68,35 +75,39 @@ fetch() {
   else curl -fsSL "$RAW/$1" -o "$workdir/$1" || die "download failed: $RAW/$1"; fi
 }
 
-build() { # build <Modelfile> <tag> <mlx base> <gguf base>
+build() { # build <Modelfile> <name> <gguf base> <mlx base>
   fetch "$1"
   base=$3
-  if [ "$engine" = gguf ]; then
+  if [ "$engine" = mlx ]; then
     base=$4
-    sed "s|^FROM $3\$|FROM $4|" "$workdir/$1" > "$workdir/$1.gguf" && mv "$workdir/$1.gguf" "$workdir/$1"
+    sed "s|^FROM $3\$|FROM $4|" "$workdir/$1" > "$workdir/$1.mlx" && mv "$workdir/$1.mlx" "$workdir/$1"
   fi
   grep -q "^FROM $base\$" "$workdir/$1" || die "$1 does not start from $base."
   say "" "==> Downloading base model $base"
   ollama pull "$base"
-  say "==> Creating flycoder:$2"
-  ollama create "flycoder:$2" -f "$workdir/$1"
+  say "==> Creating $2"
+  ollama create "$2" -f "$workdir/$1"
 }
+main() { build Modelfile flycoder0.3 qwen3.5:9b qwen3.5:9b-mtp-nvfp4; }
+fast() { build Modelfile.fast flycoder0.3fast qwen3.5:4b qwen3.5:4b-nvfp4; }
+pro() { build Modelfile.pro flycoder0.3pro qwen3.8:27b qwen3.8:27b-nvfp4; }
 
-say "FlyCoder $VERSION · Ollama $current · $os $arch · ${memory_gb} GB · $engine engine"
+say "FlyCoder $VERSION · Ollama $current · $os $arch · ${memory_gb} GB · $engine weights"
+# `flycoder` is a short alias for the variant that fits this machine.
 case $choice in
-  default) build Modelfile "$VERSION" gemma4:12b-mlx gemma4:12b; ollama cp "flycoder:$VERSION" flycoder:latest ;;
-  fast) build Modelfile.fast "$VERSION-fast" qwen3.5:4b-mlx qwen3.5:4b; ollama cp "flycoder:$VERSION-fast" flycoder:latest ;;
-  all)
-    build Modelfile "$VERSION" gemma4:12b-mlx gemma4:12b
-    build Modelfile.fast "$VERSION-fast" qwen3.5:4b-mlx qwen3.5:4b
-    ollama cp "flycoder:$VERSION" flycoder:latest ;;
+  default) main; ollama cp flycoder0.3 flycoder ;;
+  fast) fast; ollama cp flycoder0.3fast flycoder ;;
+  pro) pro; ollama cp flycoder0.3pro flycoder ;;
+  all) main; fast; pro; ollama cp flycoder0.3 flycoder ;;
 esac
 
-# FlyBrain experts: the micro-router (1 GB) and the 2B expert for simple requests in flycoder:fast.
+# FlyBrain routes flycoder0.3 and flycoder0.3fast; flycoder0.3pro is never routed.
+[ "$choice" = pro ] && brain=no
 if [ "$brain" = yes ]; then
-  build Modelfile.router router qwen3.5:0.8b-nvfp4 qwen3.5:0.8b
-  build Modelfile.lite "$VERSION-lite" qwen3.5:2b-nvfp4 qwen3.5:2b
-  if [ "$choice" = default ]; then build Modelfile.fast "$VERSION-fast" qwen3.5:4b-mlx qwen3.5:4b; fi
+  # The micro-router (1 GB), the 2B expert, and the 4B for simple requests to flycoder0.3.
+  build Modelfile.router flycoder0.3:router qwen3.5:0.8b qwen3.5:0.8b-nvfp4
+  build Modelfile.lite flycoder0.3:lite qwen3.5:2b qwen3.5:2b-nvfp4
+  [ "$choice" = default ] && fast
   # The FlyBrain server itself: two dependency-free Node files.
   brain_dir=${FLYCODER_HOME:-$HOME/.flycoder}/brain
   mkdir -p "$brain_dir"
@@ -109,8 +120,7 @@ fi
 say "" "FlyCoder is installed. Run:  ollama run flycoder"
 if [ "$brain" = yes ]; then
   say "With the FlyBrain router (less RAM, Node 22):  node $brain_dir/flybrain.mjs" \
-      "then, in another terminal:  OLLAMA_HOST=127.0.0.1:11435 ollama run flycoder"
-  if [ "$choice" = fast ]; then say "(without the 12B model, start FlyBrain with  --max-expert fast)"; fi
+      "then, in another terminal:  OLLAMA_HOST=127.0.0.1:11435 ollama run flycoder0.3"
+  [ "$choice" = fast ] && say "(without the 9B model, start FlyBrain with  --max-expert fast)"
 fi
-[ "$choice" = default ] && say "Fastest version (8 GB):  sh install.sh --fast"
 exit 0

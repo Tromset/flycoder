@@ -1,0 +1,42 @@
+{
+  "at": "2026-10-08T18:52:53.880Z",
+  "host": "http://127.0.0.1:11434",
+  "think": "off",
+  "samples": 1,
+  "maxTokens": 2048,
+  "numCtx": "model default",
+  "platform": "linux x64 Intel(R) Xeon(R) Processor @ 2.80GHz",
+  "memoryGiB": 16,
+  "models": [
+    {
+      "summary": {
+        "model": "flycoder0.3",
+        "passed": 1,
+        "total": 1,
+        "passRate": 1,
+        "decodeTokensPerSecond": 3.775456278819758,
+        "prefillTokensPerSecond": 21.58458628090153,
+        "meanOutputTokens": 392,
+        "meanSecondsPerProblem": 125.53,
+        "truncated": 0
+      },
+      "results": [
+        {
+          "problem": "py-merge-intervals",
+          "sample": 0,
+          "ok": true,
+          "error": null,
+          "truncated": false,
+          "wallMs": 157293,
+          "loadMs": 31763,
+          "outputTokens": 392,
+          "decodeMs": 103828.51,
+          "promptTokens": 468,
+          "prefillMs": 21682.139,
+          "thinkingChars": 0,
+          "answer": "```python\nfrom typing import List, Tuple\n\ndef merge_intervals(intervals: List[Tuple[int, int]]) -> List[Tuple[int, int]]:\n    \"\"\"\n    Merges a list of closed intervals.\n    \n    - Intervals are (start, end) tuples of integers.\n    - Overlapping or touching intervals (where one ends exactly where the next starts) are merged.\n    - Returns a new list of merged intervals sorted by start time.\n    - Raises ValueError if any interval has start > end.\n    - Does not mutate the input.\n    \"\"\"\n    # Validate input and check for invalid intervals\n    for start, end in intervals:\n        if start > end:\n            raise ValueError(f\"Invalid interval: start ({start}) must not be greater than end ({end})\")\n    \n    # Handle empty input\n    if not intervals:\n        return []\n    \n    # Sort intervals by start time (and end time as secondary key for stability)\n    sorted_intervals = sorted(intervals, key=lambda x: (x[0], x[1]))\n    \n    # Initialize the merged list with the first interval\n    merged: List[Tuple[int, int]] = [sorted_intervals[0]]\n    \n    # Iterate through the sorted intervals and merge as needed\n    for current_start, current_end in sorted_intervals[1:]:\n        last_start, last_end = merged[-1]\n        \n        # Check if the current interval overlaps or touches the last merged interval\n        if current_start <= last_end:\n            # Merge by updating the end of the last interval\n            merged[-1] = (last_start, max(last_end, current_end))\n        else:\n            # No overlap, add the current interval to the merged list\n            merged.append((current_start, current_end))\n    \n    return merged\n```"
+        }
+      ]
+    }
+  ]
+}
