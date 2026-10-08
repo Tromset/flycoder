@@ -3,6 +3,7 @@
 # Base: Qwen3.5 0.8B (Apache 2.0), GGUF. Published as Tromset/flycoder0.3:router.
 # Build: ollama create flycoder0.3:router -f Modelfile.router
 FROM qwen3.5:0.8b
+REQUIRES 0.30.0
 
 # The router reads at most 2,000 characters of the request.
 PARAMETER num_ctx 2048

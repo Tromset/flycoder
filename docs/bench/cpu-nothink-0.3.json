@@ -12,12 +12,12 @@
       "summary": {
         "model": "flycoder0.3",
         "passed": 1,
-        "total": 1,
-        "passRate": 1,
-        "decodeTokensPerSecond": 3.775456278819758,
-        "prefillTokensPerSecond": 21.58458628090153,
-        "meanOutputTokens": 392,
-        "meanSecondsPerProblem": 125.53,
+        "total": 3,
+        "passRate": 0.3333333333333333,
+        "decodeTokensPerSecond": 3.7353407093832978,
+        "prefillTokensPerSecond": 21.755343865522967,
+        "meanOutputTokens": 588,
+        "meanSecondsPerProblem": 180.223,
         "truncated": 0
       },
       "results": [
@@ -35,6 +35,36 @@
           "prefillMs": 21682.139,
           "thinkingChars": 0,
           "answer": "```python\nfrom typing import List, Tuple\n\ndef merge_intervals(intervals: List[Tuple[int, int]]) -> List[Tuple[int, int]]:\n    \"\"\"\n    Merges a list of closed intervals.\n    \n    - Intervals are (start, end) tuples of integers.\n    - Overlapping or touching intervals (where one ends exactly where the next starts) are merged.\n    - Returns a new list of merged intervals sorted by start time.\n    - Raises ValueError if any interval has start > end.\n    - Does not mutate the input.\n    \"\"\"\n    # Validate input and check for invalid intervals\n    for start, end in intervals:\n        if start > end:\n            raise ValueError(f\"Invalid interval: start ({start}) must not be greater than end ({end})\")\n    \n    # Handle empty input\n    if not intervals:\n        return []\n    \n    # Sort intervals by start time (and end time as secondary key for stability)\n    sorted_intervals = sorted(intervals, key=lambda x: (x[0], x[1]))\n    \n    # Initialize the merged list with the first interval\n    merged: List[Tuple[int, int]] = [sorted_intervals[0]]\n    \n    # Iterate through the sorted intervals and merge as needed\n    for current_start, current_end in sorted_intervals[1:]:\n        last_start, last_end = merged[-1]\n        \n        # Check if the current interval overlaps or touches the last merged interval\n        if current_start <= last_end:\n            # Merge by updating the end of the last interval\n            merged[-1] = (last_start, max(last_end, current_end))\n        else:\n            # No overlap, add the current interval to the merged list\n            merged.append((current_start, current_end))\n    \n    return merged\n```"
+        },
+        {
+          "problem": "py-roman-strict",
+          "sample": 0,
+          "ok": false,
+          "error": "Traceback (most recent call last):\n  File \"/tmp/flycoder-bench-nRLqs2/test_solution.py\", line 7, in <module>\n    raise AssertionError(\"accepted \" + repr(bad))\nAssertionError: accepted 'IIII'\n",
+          "truncated": false,
+          "wallMs": 226807,
+          "loadMs": 10,
+          "outputTokens": 763,
+          "decodeMs": 204187.883,
+          "promptTokens": 477,
+          "prefillMs": 22455.957,
+          "thinkingChars": 0,
+          "answer": "```python\ndef roman_to_int(s: str) -> int:\n    \"\"\"\n    Convert a Roman numeral string to an integer.\n\n    Valid input: canonical Roman numerals for 1 to 3999.\n    Raises ValueError for:\n      - empty string\n      - lowercase letters\n      - unknown characters\n      - non-canonical forms (e.g., II IV, IC, XM, MMMM)\n\n    Mapping:\n      I  = 1\n      V  = 5\n      X  = 10\n      L  = 50\n      C  = 100\n      D  = 500\n      M  = 1000\n    Subtractive pairs: IV, IX, XL, XC, CD, CM\n    \"\"\"\n    # Validate non-empty\n    if not s:\n        raise ValueError(\"Input string must not be empty.\")\n\n    # Validate characters: must be uppercase and in {I, V, X, L, C, D, M}\n    valid_chars = set(\"IVXLCDM\")\n    for ch in s:\n        if ch not in valid_chars:\n            raise ValueError(f\"Invalid Roman numeral character: {ch!r}\")\n\n    # Quick lowercase check (redundant with the set check, but explicit per spec)\n    if s != s.upper():\n        raise ValueError(\"Input must be uppercase.\")\n\n    # Value map for each symbol\n    values = {\n        \"I\": 1,\n        \"V\": 5,\n        \"X\": 10,\n        \"L\": 50,\n        \"C\": 100,\n        \"D\": 500,\n        \"M\": 1000,\n    }\n\n    # Maximum allowed value for 3999\n    max_value = 3999\n\n    # Subtractive pairs that are allowed in canonical form\n    allowed_subtractive = {\"IV\", \"IX\", \"XL\", \"XC\", \"CD\", \"CM\"}\n\n    # We will parse left-to-right, looking ahead to detect subtractive pairs.\n    # If a subtractive pair is NOT present where it should be, or if the\n    # resulting number would be non-canonical, we raise.\n\n    i = 0\n    n = len(s)\n    total = 0\n\n    while i < n:\n        cur_val = values[s[i]]\n        if i + 1 < n:\n            next_val = values[s[i + 1]]\n        else:\n            next_val = 0\n\n        # Case 1: Subtractive pair (current < next)\n        if cur_val < next_val:\n            # Check if this two-character sequence is an allowed subtractive pair\n            pair = s[i : i + 2]\n            if pair not in allowed_subtractive:\n                raise ValueError(f\"Non-canonical subtractive form: {pair}\")\n            total += next_val - cur_val\n            i += 2\n            continue\n\n        # Case 2: Normal addition (current >= next or last character)\n        total += cur_val\n        i += 1\n\n    # Ensure the result is within the canonical range 1..3999\n    if total == 0:\n        raise ValueError(\"Invalid Roman numeral: empty or invalid combination.\")\n    if total > max_value:\n        raise ValueError(f\"Value {total} exceeds maximum canonical Roman numeral (3999).\")\n\n    return total\n```"
+        },
+        {
+          "problem": "py-parse-duration",
+          "sample": 0,
+          "ok": false,
+          "error": "Traceback (most recent call last):\n  File \"/tmp/flycoder-bench-Yln79e/test_solution.py\", line 3, in <module>\n    assert parse_duration(\"1h30m\") == 5400\n           ~~~~~~~~~~~~~~^^^^^^^^^\n  File \"/tmp/flycoder-bench-Yln79e/solution.py\", line 35, in parse_duration\n    raise ValueError(f\"Invalid part: '{part}'\")\nValueError: Invalid part: '1h30m'\n",
+          "truncated": false,
+          "wallMs": 188347,
+          "loadMs": 5,
+          "outputTokens": 609,
+          "decodeMs": 164229.685,
+          "promptTokens": 537,
+          "prefillMs": 23983.098,
+          "thinkingChars": 0,
+          "answer": "```python\nimport re\n\ndef parse_duration(text: str) -> int:\n    \"\"\"\n    Parse a duration string into total seconds.\n    \n    Supports units: d (days), h (hours), m (minutes), s (seconds).\n    Units must appear in order (d, h, m, s) and at most once each.\n    Spaces are allowed between parts or around the string.\n    \n    Raises ValueError for invalid input.\n    \"\"\"\n    # Strip leading/trailing whitespace\n    text = text.strip()\n    \n    if not text:\n        raise ValueError(\"Empty string is invalid\")\n    \n    # Split by spaces to handle \"1h 15m 10s\"\n    parts = text.split()\n    \n    if not parts:\n        raise ValueError(\"Invalid input after stripping\")\n    \n    total_seconds = 0\n    seen_units = set()\n    expected_order = ['d', 'h', 'm', 's']\n    \n    # Regex to match number followed by a unit\n    pattern = re.compile(r'^(\\d+)([dhms])$')\n    \n    for part in parts:\n        match = pattern.match(part)\n        if not match:\n            raise ValueError(f\"Invalid part: '{part}'\")\n        \n        num = int(match.group(1))\n        unit = match.group(2)\n        \n        if num < 0:\n            raise ValueError(f\"Negative number not allowed in part: {part}\")\n            \n        # Check unit validity\n        if unit not in expected_order:\n            raise ValueError(f\"Invalid unit: '{unit}'\")\n            \n        if unit in seen_units:\n            raise ValueError(f\"Duplicate unit: '{unit}'\")\n            \n        seen_units.add(unit)\n        \n        # Validate order: if a unit is seen, next valid unit must follow in order\n        # We track the last seen unit index to ensure order\n        unit_index = expected_order.index(unit)\n        for prev_unit in seen_units:\n            if expected_order.index(prev_unit) > unit_index:\n                raise ValueError(f\"Units out of order: '{unit}' appears after '{prev_unit}'\")\n        \n        # Add to total\n        unit_to_seconds = {'d': 86400, 'h': 3600, 'm': 60, 's': 1}\n        total_seconds += num * unit_to_seconds[unit]\n    \n    # Final validation: ensure all expected units were not required but some were missing?\n    # The problem says \"one or more ... parts\", so missing units are OK as long as order is respected.\n    # However, we must ensure no extra characters remain.\n    \n    if len(seen_units) == 0:\n        raise ValueError(\"No valid unit found in input\")\n        \n    return total_seconds\n```"
         }
       ]
     }

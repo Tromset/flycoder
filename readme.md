@@ -25,6 +25,7 @@ What FlyCoder sets up on top of the base:
 - **A large context**: 64K tokens instead of Ollama's 4,096 default on machines under 24 GB. Qwen's hybrid attention keeps it cheap: `flycoder0.3` uses 8.8 GB in total at 64K.
 - **The right sampling**: Qwen's recommended settings for coding in thinking mode.
 - **A short system prompt for code**: exact names and signatures, complete code without "TODO", edge cases, no invented APIs, a final check before answering, secure defaults, answers in the user's language.
+- **`flycoder0.3pro` has its own recipe**: a six-step workflow (contract, plan, code, tests, check, report), rules for coding agents, a worked example that shows the expected answer, and multi-token prediction. Details: [Documentation.md, section 6.5](Documentation.md#65-what-makes-flycoder03pro-different).
 
 ## Install under a short name
 

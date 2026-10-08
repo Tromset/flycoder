@@ -117,7 +117,9 @@ Take the largest variant your memory allows:
 
 - **`flycoder0.3`** (Qwen3.5 9B, 16 GB Macs): the default. With its 64K context it uses about 9 GB in memory (measured: 8.8 GB).
 - **`flycoder0.3fast`** (Qwen3.5 4B, 8 GB Macs): about twice as fast per token, a lower pass rate on hard problems.
-- **`flycoder0.3pro`** (Qwen3.8 27B, 32 GB Macs or more): the latest Qwen generation, for hard bugs, algorithms and coding agents.
+- **`flycoder0.3pro`** (Qwen3.8 27B, 32 GB Macs or more): the latest Qwen generation with its own FlyCoder recipe, for hard bugs, algorithms and coding agents (section 6.5).
+
+Every Modelfile declares the Ollama version it needs (`REQUIRES`): an older Ollama names the version to install instead of failing to load the model.
 
 All three bases support tool calling, thinking and images.
 
@@ -240,6 +242,7 @@ Each response carries the `x-flybrain-expert` and `x-flybrain-reason` headers, a
 | `temperature` | 0.6 | 0.6 | 0.6 | Qwen's settings for coding in thinking mode |
 | `top_k`, `top_p`, `min_p` | 20, 0.95, 0 | same | same | Same |
 | `presence_penalty`, `repeat_penalty` | 0, 1 | same | same | Same |
+| `draft_num_predict` | — | — | 4 | Multi-token prediction: Qwen3.8's built-in draft layer proposes 4 tokens per pass |
 
 Avoid lowering the temperature: Qwen advises against it, and FlyCoder 0.1 (temperature 0.2) produced looping answers.
 
@@ -252,7 +255,7 @@ printf 'FROM Tromset/flycoder0.3\nPARAMETER num_ctx 131072\n' > Modelfile.128k
 ollama create flycoder0.3:128k -f Modelfile.128k
 ```
 
-Qwen3.5 and Qwen3.8 use a hybrid attention where most layers keep no growing cache, so a large context costs little memory: `flycoder0.3` uses 8.8 GB in total at 65,536 tokens (measured with `ollama ps`). Check with `ollama ps` that the model stays at `100% GPU` after a change.
+Qwen3.5 and Qwen3.8 use a hybrid attention where only one layer in four keeps a growing cache, so a large context costs little memory: `flycoder0.3` uses 8.8 GB in total at 65,536 tokens (measured with `ollama ps`). For `flycoder0.3pro`, the GGUF header gives 16 cache layers of 4 KB per token each: about 4.4 GB at 65,536 tokens, 22 GB in total with the weights (computed, not measured). On a 32 GB Mac, if `ollama ps` shows a CPU share, use `/set parameter num_ctx 32768`. Check with `ollama ps` that the model stays at `100% GPU` after a change.
 
 ### 6.3 Thinking
 
@@ -260,7 +263,7 @@ Thinking is on by default: the model reasons before answering, which clearly imp
 
 ### 6.4 System prompt
 
-FlyCoder's system prompt (`ollama show flycoder0.3 --system`) asks the model to:
+The system prompt of `flycoder0.3`, `fast` and `lite` (`ollama show flycoder0.3 --system`) asks the model to:
 
 - keep the requested names, signatures and files exactly;
 - deliver complete, runnable code, without "TODO";
@@ -275,7 +278,18 @@ FlyCoder's system prompt (`ollama show flycoder0.3 --system`) asks the model to:
 
 Replace it for a session with `/set system`, or with a `system` message in the API.
 
-### 6.5 Ollama server settings
+### 6.5 What makes `flycoder0.3pro` different
+
+`flycoder0.3pro` is not Qwen3.8 with a new name. Its Modelfile gives it:
+
+- **Its own workflow** in the system prompt, in six steps: contract (exact names, inputs, errors; one question only if an ambiguity changes the code), plan (at most five lines for multi-file work), code, tests that prove the code, a check of the tricky cases before answering, and a one-line report on how to run the tests.
+- **Agent rules**: read files before editing them, change as little as the task needs, run the project's tests and report their real output, never run a destructive command without the user's agreement.
+- **A worked example** (`MESSAGE`): one request and the expected answer (assumption, code, pytest tests, run command), so the model sees the format instead of only reading about it. `npm test` runs the example's code against its own test cases.
+- **Multi-token prediction** (`draft_num_predict 4`) and 64K tokens of context.
+
+The weights are Qwen3.8's: FlyCoder does not retrain them. The recipe was measured on the 9B base, because the test server cannot hold the 27B (section 7).
+
+### 6.6 Ollama server settings
 
 These variables apply to every model. On a Mac running the Ollama app, set them with `launchctl setenv`, then restart Ollama:
 
@@ -381,6 +395,7 @@ The tests check:
 - that the Modelfiles start from the right bases, with the expected settings and an identical system prompt apart from the base name;
 - that the installer, the publishing script and the workflow agree with the Modelfiles and the version;
 - that each ollama.com page shows the right name, size, memory and context;
+- that every Modelfile declares its minimum Ollama version, and that the code of the pro example passes its own test cases;
 - FlyBrain's rules, the fallback to the large model when the micro-model fails, conversation memory, the scheduler, and the server against a fake Ollama.
 
 CI runs them on Linux and on macOS, where the reference solutions run inside the sandbox.
@@ -398,7 +413,8 @@ Add an object to `bench/problems.mjs` with `id` (`py-` or `js-` prefix), `langua
 - The weights are not retrained: FlyCoder is a profile of existing models.
 - The bench has 20 problems and one attempt per problem: it separates profiles without replacing a public benchmark.
 - The reference measurements come from a Linux server without a GPU; speed on a Mac has not been measured for this version.
-- `flycoder0.3pro` was not run by the bench: its 27B base needs more memory than the test server has.
+- `flycoder0.3pro` was not run by the bench: its 27B base needs more memory than the test server has. Its recipe was measured on the 9B base instead.
+- The pro example conversation is sent with every conversation: about 600 tokens of the 64K context.
 - FlyBrain does not lower the memory peak of hard requests, and switching experts costs a few seconds.
 
 ## 12. Version history

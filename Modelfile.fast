@@ -2,6 +2,7 @@
 # Base: Qwen3.5 4B (Apache 2.0), GGUF Q4_K_M. Published as Tromset/flycoder0.3fast.
 # Build: ollama create flycoder0.3fast -f Modelfile.fast
 FROM qwen3.5:4b
+REQUIRES 0.30.0
 
 # 32K tokens of context keep an 8 GB Mac comfortable.
 PARAMETER num_ctx 32768
