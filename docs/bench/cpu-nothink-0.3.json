@@ -11,13 +11,13 @@
     {
       "summary": {
         "model": "flycoder0.3",
-        "passed": 6,
-        "total": 11,
-        "passRate": 0.5454545454545454,
-        "decodeTokensPerSecond": 3.859825659223366,
-        "prefillTokensPerSecond": 22.817582650115668,
-        "meanOutputTokens": 754,
-        "meanSecondsPerProblem": 216.78654545454543,
+        "passed": 7,
+        "total": 12,
+        "passRate": 0.5833333333333334,
+        "decodeTokensPerSecond": 3.844831517257886,
+        "prefillTokensPerSecond": 22.80421580322576,
+        "meanOutputTokens": 745.9166666666666,
+        "meanSecondsPerProblem": 215.52991666666665,
         "truncated": 1
       },
       "results": [
@@ -185,6 +185,21 @@
           "prefillMs": 24045.656,
           "thinkingChars": 0,
           "answer": "```python\ndef number_to_words(n: int) -> str:\n    \"\"\"\n    Convert an integer to its English words representation.\n    \n    Valid range: 0 to 999,999,999,999 inclusive.\n    - Lowercase words.\n    - Single spaces between words.\n    - Hyphens for compound numbers between 21 and 99.\n    - No \"and\".\n    - Scale words: thousand, million, billion.\n    \n    Raises ValueError if n is outside the valid range or not an integer.\n    \"\"\"\n    if not isinstance(n, int):\n        raise ValueError(\"Input must be an integer.\")\n    if n < 0 or n > 999_999_999_999:\n        raise ValueError(\"Input must be between 0 and 999,999,999,999 inclusive.\")\n\n    # Base words for 0-19\n    under_20 = [\n        \"zero\", \"one\", \"two\", \"three\", \"four\", \"five\", \"six\", \"seven\", \"eight\", \"nine\",\n        \"ten\", \"eleven\", \"twelve\", \"thirteen\", \"fourteen\", \"fifteen\", \"sixteen\",\n        \"seventeen\", \"eighteen\", \"nineteen\"\n    ]\n\n    # Tens: twenty, thirty, etc.\n    tens = [\n        \"\", \"\", \"\", \"\", \"\", \"\", \"\", \"\", \"\", \"\",  # 0-9 placeholders\n        \"ten\", \"eleven\", \"twelve\", \"thirteen\", \"fourteen\", \"fifteen\", \"sixteen\",\n        \"seventeen\", \"eighteen\", \"nineteen\"\n    ]\n    tens = [\n        \"\", \"\", \"\", \"\", \"\", \"\", \"\", \"\", \"\", \"\",  # 0-9\n        \"ten\", \"eleven\", \"twelve\", \"thirteen\", \"fourteen\", \"fifteen\", \"sixteen\",\n        \"seventeen\", \"eighteen\", \"nineteen\"\n    ]\n    tens = [\"\", \"ten\", \"twenty\", \"thirty\", \"forty\", \"fifty\", \"sixty\", \"seventy\", \n             \"eighty\", \"ninety\"]\n\n    # Scale words\n    scales = [\"\", \"thousand\", \"million\", \"billion\"]\n\n    def convert_under_thousand(num: int) -> str:\n        \"\"\"Converts a number from 0 to 999 into words.\"\"\"\n        if num == 0:\n            return \"\"\n        \n        words = []\n        \n        # Hundreds place\n        if num >= 100:\n            words.append(under_20[num // 100])\n            words.append(\"hundred\")\n            num %= 100\n        \n        # Tens and units\n        if num > 0:\n            if num < 20:\n                words.append(under_20[num])\n            else:\n                ten = tens[num // 10]\n                unit = under_20[num % 10]\n                if num % 10 == 0:\n                    words.append(ten)\n                else:\n                    words.append(f\"{ten}-{unit}\")\n        \n        return \" \".join(words)\n\n    if n == 0:\n        return \"zero\"\n\n    parts = []\n    scale_index = 0\n\n    while n > 0:\n        chunk = n % 1000\n        if chunk > 0:\n            chunk_words = convert_under_thousand(chunk)\n            if scale_index == 0:\n                parts.append(chunk_words)\n            else:\n                parts.append(f\"{chunk_words} {scales[scale_index]}\")\n        n //= 1000\n        scale_index += 1\n\n    return \" \".join(parts)\n```"
+        },
+        {
+          "problem": "py-dijkstra",
+          "sample": 0,
+          "ok": true,
+          "error": null,
+          "truncated": false,
+          "wallMs": 201710,
+          "loadMs": 3,
+          "outputTokens": 657,
+          "decodeMs": 179258.684,
+          "promptTokens": 505,
+          "prefillMs": 22282.489,
+          "thinkingChars": 0,
+          "answer": "```python\nimport heapq\nfrom typing import List, Tuple, Union\n\ndef shortest_distances(\n    n: int,\n    edges: List[Tuple[Union[int, float], Union[int, float], Union[int, float]]],\n    source: Union[int, float]\n) -> List[float]:\n    \"\"\"\n    Computes shortest distances from a source node in a directed weighted graph.\n    \n    Args:\n        n: Number of nodes (0 to n-1).\n        edges: List of tuples (u, v, weight).\n        source: Source node index.\n    \n    Returns:\n        List of shortest distances from source to each node.\n    \n    Raises:\n        ValueError: If source is invalid or any weight is negative.\n    \"\"\"\n    # Validate source\n    if not isinstance(source, int) or source < 0 or source >= n:\n        raise ValueError(f\"Source node {source} is not a valid node for a graph with {n} nodes (0..{n-1}).\")\n\n    # Validate edges and build adjacency list\n    # Using a dictionary for the adjacency list to handle potential hash collisions or custom objects if needed,\n    # but for ints, a list of lists is faster. We'll use a list of lists.\n    adj: List[List[Tuple[int, float]]] = [[] for _ in range(n)]\n    \n    for u, v, w in edges:\n        # Validate node indices in edges\n        if not isinstance(u, int) or not isinstance(v, int):\n            raise ValueError(\"Node indices in edges must be integers.\")\n        if u < 0 or u >= n:\n            raise ValueError(f\"Node index {u} in edge is out of range [0, {n-1}).\")\n        if v < 0 or v >= n:\n            raise ValueError(f\"Node index {v} in edge is out of range [0, {n-1}).\")\n        \n        # Validate weight\n        if not isinstance(w, (int, float)):\n            raise ValueError(\"Edge weights must be numbers.\")\n        \n        # Check for negative weight\n        if w < 0:\n            raise ValueError(\"Edge weights must be non-negative.\")\n        \n        adj[u].append((v, w))\n    \n    # Dijkstra's Algorithm using a min-heap priority queue\n    # Initialize distances\n    distances = [float('inf')] * n\n    distances[source] = 0.0\n    \n    # Priority queue stores tuples (distance, node)\n    pq = [(0.0, source)]\n    \n    while pq:\n        current_dist, u = heapq.heappop(pq)\n        \n        # If current distance is greater than already found shortest distance, skip\n        if current_dist > distances[u]:\n            continue\n        \n        for v, weight in adj[u]:\n            new_dist = current_dist + weight\n            if new_dist < distances[v]:\n                distances[v] = new_dist\n                heapq.heappush(pq, (new_dist, v))\n    \n    return distances\n```"
         }
       ]
     }
