@@ -326,13 +326,13 @@
     {
       "summary": {
         "model": "flycoder0.3fast",
-        "passed": 1,
-        "total": 1,
-        "passRate": 1,
-        "decodeTokensPerSecond": 6.80757334971185,
-        "prefillTokensPerSecond": 42.318649666143834,
-        "meanOutputTokens": 279,
-        "meanSecondsPerProblem": 52.055,
+        "passed": 2,
+        "total": 5,
+        "passRate": 0.4,
+        "decodeTokensPerSecond": 4.73869465651601,
+        "prefillTokensPerSecond": 32.75888637662057,
+        "meanOutputTokens": 437.6,
+        "meanSecondsPerProblem": 107.7688,
         "truncated": 0
       },
       "results": [
@@ -350,6 +350,66 @@
           "prefillMs": 11058.954,
           "thinkingChars": 0,
           "answer": "```python\ndef merge_intervals(intervals):\n    \"\"\"\n    Merge a list of closed intervals that overlap or touch.\n    \n    Args:\n        intervals: List of (start, end) tuples of integers.\n        \n    Returns:\n        A new list of merged (start, end) tuples, sorted by start.\n        \n    Raises:\n        ValueError: If any interval has start > end.\n    \"\"\"\n    if not intervals:\n        return []\n    \n    # Validate input and sort by start\n    for start, end in intervals:\n        if start > end:\n            raise ValueError(f\"Invalid interval: start ({start}) > end ({end})\")\n    \n    sorted_intervals = sorted(intervals, key=lambda x: x[0])\n    \n    merged = [sorted_intervals[0]]\n    \n    for current in sorted_intervals[1:]:\n        last = merged[-1]\n        # Check if current interval overlaps or touches the last merged interval\n        if current[0] <= last[1]:\n            # Merge by updating the end of the last interval\n            merged[-1] = (last[0], max(last[1], current[1]))\n        else:\n            # No overlap, append the current interval\n            merged.append(current)\n    \n    return merged\n```"
+        },
+        {
+          "problem": "py-roman-strict",
+          "sample": 0,
+          "ok": false,
+          "error": "Traceback (most recent call last):\n  File \"/tmp/flycoder-bench-qI0QS9/test_solution.py\", line 3, in <module>\n    assert roman_to_int(text) == value, text\n           ~~~~~~~~~~~~^^^^^^\n  File \"/tmp/flycoder-bench-qI0QS9/solution.py\", line 74, in roman_to_int\n    raise ValueError(\"Roman numeral must represent a value between 1 and 3999\")\nValueError: Roman numeral must represent a value between 1 and 3999\n",
+          "truncated": false,
+          "wallMs": 126073,
+          "loadMs": 12,
+          "outputTokens": 726,
+          "decodeMs": 113880.949,
+          "promptTokens": 477,
+          "prefillMs": 12067.157,
+          "thinkingChars": 0,
+          "answer": "```python\ndef roman_to_int(s: str) -> int:\n    \"\"\"\n    Converts a Roman numeral string to an integer.\n    \n    Valid Roman numerals are restricted to the range 1-3999 using the characters\n    I, V, X, L, C, D, M and standard subtractive pairs (IV, IX, XL, XC, CD, CM).\n    \n    Args:\n        s (str): A string representing a Roman numeral.\n        \n    Returns:\n        int: The integer value of the Roman numeral.\n        \n    Raises:\n        ValueError: If the input is empty, contains lowercase letters, \n                   contains invalid characters, or represents a non-canonical form \n                   or a value outside the range 1-3999.\n    \"\"\"\n    if not isinstance(s, str):\n        raise ValueError(\"Input must be a string\")\n    \n    if not s:\n        raise ValueError(\"Input cannot be an empty string\")\n    \n    valid_chars = set(\"IVXLCDM\")\n    if not all(c in valid_chars for c in s):\n        raise ValueError(\"Invalid characters in Roman numeral\")\n    \n    # Check for lowercase letters\n    if any(c.islower() for c in s):\n        raise ValueError(\"Roman numeral must be uppercase\")\n    \n    # Mapping of Roman numerals to integers\n    roman_map = {\n        'I': 1, 'V': 5, 'X': 10, 'L': 50, 'C': 100, 'D': 500, 'M': 1000\n    }\n    \n    # Check for non-canonical forms by scanning for invalid subtractive pairs\n    # Canonical subtractive pairs: IV, IX, XL, XC, CD, CM\n    canonical_subtractive = ['IV', 'IX', 'XL', 'XC', 'CD', 'CM']\n    \n    # Scan the string to detect non-canonical subtractive patterns\n    i = 0\n    while i < len(s) - 1:\n        if s[i] in roman_map and s[i+1] in roman_map:\n            val_curr = roman_map[s[i]]\n            val_next = roman_map[s[i+1]]\n            \n            # If we have a smaller value before a larger value, it's potentially subtractive\n            if val_curr < val_next:\n                # Check if it's a canonical subtractive pair\n                if (s[i:i+2] not in canonical_subtractive):\n                    raise ValueError(\"Non-canonical subtractive pair detected\")\n                i += 2\n            else:\n                i += 1\n        else:\n            i += 1\n    \n    # Calculate the total value\n    total = 0\n    i = 0\n    while i < len(s):\n        val = roman_map[s[i]]\n        # Look ahead to handle subtractive notation\n        if i + 1 < len(s) and roman_map[s[i]] < roman_map[s[i+1]]:\n            total += val_next - val\n            i += 2\n        else:\n            total += val\n            i += 1\n    \n    if total < 1 or total > 3999:\n        raise ValueError(\"Roman numeral must represent a value between 1 and 3999\")\n    \n    return total\n```"
+        },
+        {
+          "problem": "py-parse-duration",
+          "sample": 0,
+          "ok": false,
+          "error": "Traceback (most recent call last):\n  File \"/tmp/flycoder-bench-yMlr5Y/test_solution.py\", line 2, in <module>\n    assert parse_duration(\"45s\") == 45\n           ~~~~~~~~~~~~~~^^^^^^^\n  File \"/tmp/flycoder-bench-yMlr5Y/solution.py\", line 30, in parse_duration\n    matches = re.findall(pattern, text)\n              ^^\nNameError: name 're' is not defined. Did you forget to import 're'?\n",
+          "truncated": false,
+          "wallMs": 103446,
+          "loadMs": 3,
+          "outputTokens": 541,
+          "decodeMs": 88729.093,
+          "promptTokens": 537,
+          "prefillMs": 14081.624,
+          "thinkingChars": 0,
+          "answer": "```python\ndef parse_duration(text: str) -> int:\n    \"\"\"\n    Parse a duration string into total seconds.\n    \n    Format: one or more <non-negative integer><unit> parts.\n    Units: d (86400 s), h (3600 s), m (60 s), s (1 s).\n    Order must be d, h, m, s (no reverse order allowed).\n    Each unit appears at most once.\n    Spaces allowed between parts and around text, but not inside numbers or units.\n    \n    Raises ValueError for:\n        - empty string\n        - no unit provided\n        - invalid unit character\n        - out-of-order units (e.g., '1m1h')\n        - duplicate units (e.g., '1h1h')\n        - spaces inside numbers or between number and unit\n    \"\"\"\n    if not text or not text.strip():\n        raise ValueError(\"Empty input\")\n\n    text = text.strip()\n    if not text:\n        raise ValueError(\"Empty input\")\n\n    # Regex to match valid number+unit pairs\n    # Number: non-negative integer (no leading zeros unless it's just \"0\")\n    # Unit: one of d, h, m, s\n    pattern = r'(\\d+)([dhms])'\n    matches = re.findall(pattern, text)\n\n    if not matches:\n        raise ValueError(\"No valid duration parts found\")\n\n    # Validate order and uniqueness\n    seen_units = []\n    for num_str, unit in matches:\n        unit_order = {'d': 0, 'h': 1, 'm': 2, 's': 3}\n        if unit in seen_units:\n            raise ValueError(f\"Duplicate unit: '{unit}'\")\n        if unit_order[unit] < unit_order[seen_units[-1]]:\n            raise ValueError(\"Units must appear in order d, h, m, s\")\n        seen_units.append(unit)\n\n    # Convert to seconds\n    total_seconds = 0\n    for num_str, unit in matches:\n        num = int(num_str)\n        if unit == 'd':\n            total_seconds += num * 86400\n        elif unit == 'h':\n            total_seconds += num * 3600\n        elif unit == 'm':\n            total_seconds += num * 60\n        elif unit == 's':\n            total_seconds += num\n\n    return total_seconds\n```"
+        },
+        {
+          "problem": "py-topo-sort",
+          "sample": 0,
+          "ok": true,
+          "error": null,
+          "truncated": false,
+          "wallMs": 157441,
+          "loadMs": 3,
+          "outputTokens": 466,
+          "decodeMs": 138080.055,
+          "promptTokens": 488,
+          "prefillMs": 18903.42,
+          "thinkingChars": 0,
+          "answer": "```python\nfrom typing import Dict, List, Set\n\n\ndef topo_sort(deps: Dict[str, List[str]]) -> List[str]:\n    \"\"\"\n    Perform a topological sort on the graph defined by `deps`.\n    \n    Args:\n        deps: A dictionary mapping each node (string) to a list of nodes it depends on.\n               Nodes that only appear as dependencies are also included in the graph.\n    \n    Returns:\n        A list containing every node exactly once, ordered such that each node comes\n        after all of its dependencies. If multiple nodes are ready, the alphabetically\n        smallest is chosen first to ensure determinism.\n    \n    Raises:\n        ValueError: If the graph contains a cycle.\n    \"\"\"\n    # Collect all nodes (both keys and values in dependencies)\n    all_nodes: Set[str] = set(deps.keys())\n    for node in deps.values():\n        all_nodes.update(node)\n\n    # Calculate in-degree for each node (number of dependencies)\n    in_degree: Dict[str, int] = {node: 0 for node in all_nodes}\n    for node, dependencies in deps.items():\n        for dep in dependencies:\n            in_degree[node] += 1\n\n    # Start with nodes that have no dependencies (in-degree 0), sorted alphabetically\n    ready: List[str] = sorted([node for node, degree in in_degree.items() if degree == 0])\n    result: List[str] = []\n\n    while ready:\n        # Pick the alphabetically smallest node\n        current_node = ready.pop(0)\n        result.append(current_node)\n\n        # Find all nodes that depend on the current node and decrement their in-degree\n        for node, dependencies in deps.items():\n            if current_node in dependencies:\n                in_degree[node] -= 1\n                if in_degree[node] == 0:\n                    # Insert in sorted order to maintain deterministic selection\n                    ready.append(node)\n                    ready.sort()\n\n    # If the result doesn't contain all nodes, a cycle exists\n    if len(result) != len(all_nodes):\n        raise ValueError(\"Cycle detected in the graph\")\n\n    return result\n```"
+        },
+        {
+          "problem": "py-lru-cache",
+          "sample": 0,
+          "ok": false,
+          "error": "Traceback (most recent call last):\n  File \"/tmp/flycoder-bench-woVFFC/test_solution.py\", line 13, in <module>\n    z.put(\"a\", 1)\n    ~~~~~^^^^^^^^\n  File \"/tmp/flycoder-bench-woVFFC/solution.py\", line 22, in put\n    self.cache.popitem(last=False)\n    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^\nKeyError: 'dictionary is empty'\n",
+          "truncated": false,
+          "wallMs": 99851,
+          "loadMs": 4,
+          "outputTokens": 176,
+          "decodeMs": 80056.667,
+          "promptTokens": 493,
+          "prefillMs": 19074.551,
+          "thinkingChars": 0,
+          "answer": "```python\nfrom collections import OrderedDict\n\nclass LRUCache:\n    def __init__(self, capacity: int):\n        if capacity < 0:\n            raise ValueError(\"Capacity cannot be negative\")\n        self.capacity = capacity\n        self.cache = OrderedDict()\n\n    def get(self, key: int) -> int:\n        if key not in self.cache:\n            return -1\n        self.cache.move_to_end(key)\n        return self.cache[key]\n\n    def put(self, key: int, value: int) -> None:\n        if key in self.cache:\n            self.cache[key] = value\n            self.cache.move_to_end(key)\n        else:\n            if len(self.cache) >= self.capacity:\n                self.cache.popitem(last=False)\n            self.cache[key] = value\n```"
         }
       ]
     }
