@@ -25,7 +25,7 @@ What FlyCoder sets up on top of the base:
 - **A large context**: 64K tokens instead of Ollama's 4,096 default on machines under 24 GB. Qwen's hybrid attention keeps it cheap: `flycoder0.3` uses 8.8 GB in total at 64K.
 - **The right sampling**: Qwen's recommended settings for coding in thinking mode.
 - **A short system prompt for code**: exact names and signatures, complete code without "TODO", edge cases, no invented APIs, a final check before answering, secure defaults, answers in the user's language.
-- **`flycoder0.3pro` has its own recipe**: a six-step workflow (contract, plan, code, tests, check, report), rules for coding agents, a worked example that shows the expected answer, and multi-token prediction. Details: [Documentation.md, section 6.5](Documentation.md#65-what-makes-flycoder03pro-different).
+- **`flycoder0.3pro` adds rules for coding agents and multi-token prediction** on Qwen3.8 27B. Details: [Documentation.md, section 6.5](Documentation.md#65-what-makes-flycoder03pro-different).
 
 ## Install under a short name
 
@@ -38,7 +38,15 @@ The installer picks the variant from your memory and names it `flycoder`. Option
 
 ## Measured quality and speed
 
-The 0.3 reference run (`docs/bench/cpu-nothink-0.3.json`) is being recorded. The 0.2 run stays in [docs/bench/cpu-nothink.json](docs/bench/cpu-nothink.json).
+20 coding problems with hidden tests (`bench/`), on a 4-core Linux server without a GPU, thinking off, one attempt per problem:
+
+| Profile | Base | Passed | Generation |
+|---|---|---|---|
+| `flycoder0.3` | Qwen3.5 9B | 9/20 | 3.9 tok/s |
+| `flycoder0.3fast` | Qwen3.5 4B | 5/20 | 6.1 tok/s |
+| 0.2 beta (did not run on every 16 GB Mac) | Gemma 4 12B | 14/20 | 3.4 tok/s |
+
+Three of the 9B's failures are answers cut off at 2,048 tokens: with thinking off it reasons in code comments; keep thinking on (the default) for code you ship. On a Mac, speeds are much higher. Details and the system-prompt comparison: [Documentation.md, section 7](Documentation.md#7-benchmark).
 
 ## FlyBrain: less RAM for simple requests (optional)
 

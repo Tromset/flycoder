@@ -2,7 +2,6 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { execFileSync } from 'node:child_process';
-import { PROBLEMS } from '../bench/problems.mjs';
 
 const read = file => fs.readFileSync(new URL(`../${file}`, import.meta.url), 'utf8');
 // Minimal Modelfile reader: FROM, REQUIRES, PARAMETER, and the triple-quoted SYSTEM and MESSAGE blocks.
@@ -55,38 +54,20 @@ test('the 0.3, fast and lite experts share one system prompt, apart from the bas
   for (const v of SHARED) assert.deepEqual(parse(read(v.file)).messages, [], `${v.file} has no example conversation`);
 });
 
-test('flycoder0.3pro has its own agent workflow on top of the shared rules', () => {
-  const pro = parse(read(PRO.file)).system;
-  assert.match(pro, /^You are FlyCoder 0\.3 pro,/);
-  for (const step of ['1. Contract', '2. Plan', '3. Code', '4. Tests', '5. Check', '6. Report', 'As an agent with tools']) assert.ok(pro.includes(step), `pro prompt has ${step}`);
-  for (const rule of ['No placeholders, no "TODO"', 'never invent functions', 'parameterized SQL', 'Never claim a result you did not see', "write them in the user's language"])
-    assert.ok(pro.includes(rule), `pro prompt keeps the rule: ${rule}`);
-  assert.ok(pro.length < 3000, 'keep the pro prompt short');
-});
-
-test("the pro example conversation shows code that passes its own tests", () => {
-  const messages = parse(read(PRO.file)).messages;
-  assert.deepEqual(messages.map(m => m.role), ['user', 'assistant']);
-  // An example that solves a bench problem would hand the model the answer and inflate its score.
-  for (const p of PROBLEMS) assert.ok(!messages[0].content.includes(p.entry), `the example must not be the bench problem ${p.id}`);
-  assert.ok(!messages[1].content.includes('"""'), 'triple double quotes would end the MESSAGE block');
-  const [code, tests] = [...messages[1].content.matchAll(/```python\n([\s\S]*?)```/g)].map(m => m[1]);
-  assert.match(tests, /pytest/);
-  // Run the example with plain asserts (pytest is not needed): the valid and invalid cases of its tests.
-  const [valid, invalid] = [...tests.matchAll(/"text", (\[[^\]]*\])/g)].map(m => JSON.parse(m[1].replace(/,\s*\]$/, ']')));
-  assert.ok(valid.length >= 5 && invalid.length >= 5);
-  const check = `${code}\nfor text in ${JSON.stringify(valid)}:\n    assert is_valid_ipv4(text), text\n` +
-    `for text in ${JSON.stringify(invalid)}:\n    assert not is_valid_ipv4(text), text\nprint("ok")\n`;
-  assert.equal(execFileSync('python3', ['-c', check], { encoding: 'utf8' }).trim(), 'ok');
-});
-
-test('Modelfile.router is a tiny deterministic classifier that answers simple or hard', () => {
-  const m = parse(read(ROUTER.file));
-  assert.deepEqual(m.from, [ROUTER.gguf]);
-  assert.deepEqual(m.unknown, []);
-  assert.deepEqual(m.params, ROUTER.params);
-  assert.match(m.system, /"simple"/); assert.match(m.system, /"hard"/);
-  assert.match(m.system, /When unsure, answer "hard"/);
+test('flycoder0.3pro keeps every shared rule and adds the agent rules', () => {
+  // Measured on the 9B base: the shared prompt solved 9/20 bench problems, a six-step workflow with a worked example 6/20.
+  const shared = parse(read('Modelfile')).system;
+  const m = parse(read(PRO.file));
+  assert.match(m.system, /^You are FlyCoder 0\.3 pro,/);
+  assert.ok(m.system.includes(PRO.base), 'pro prompt names the real base model');
+  const rules = shared.split('\n').filter(l => l.startsWith('- ') && !l.startsWith('- Never claim'));
+  assert.ok(rules.length >= 8);
+  for (const rule of rules) assert.ok(m.system.includes(rule), `pro prompt keeps: ${rule}`);
+  assert.match(m.system, /Never claim that you ran code or tests unless a tool actually ran them/);
+  assert.match(m.system, /As an agent with tools: read the relevant files before editing them/);
+  assert.match(m.system, /Never run a destructive command/);
+  assert.deepEqual(m.messages, [], 'no example conversation: it cost quality in the A/B bench');
+  assert.ok(m.system.length < 3000, 'keep the pro prompt short');
 });
 
 test('installer and publisher agree with the Modelfiles and the package version', () => {

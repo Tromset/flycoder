@@ -10,7 +10,7 @@ ollama run Tromset/flycoder0.3pro
 |---|---|---|---|
 | Qwen3.8 27B (Apache 2.0) | 18 GB | 32 GB | 64K tokens |
 
-- **Works like a senior engineer**: pins down the contract, plans multi-file changes, writes the code and the tests that prove it, checks the tricky cases before answering, then tells you how to run the tests.
+- **Code that runs**: exact names and signatures, every import, edge cases handled, a final check before answering, no "TODO", no invented APIs.
 - **Built for agents**: reads files before editing, makes minimal changes, reports real test output, never runs a destructive command without asking (`ollama launch claude --model Tromset/flycoder0.3pro`).
 - **Fast for its size**: multi-token prediction is on, and 64K tokens of context cost only about 4.4 GB thanks to Qwen3.8's hybrid attention.
 

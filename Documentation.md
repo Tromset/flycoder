@@ -117,7 +117,7 @@ Take the largest variant your memory allows:
 
 - **`flycoder0.3`** (Qwen3.5 9B, 16 GB Macs): the default. With its 64K context it uses about 9 GB in memory (measured: 8.8 GB).
 - **`flycoder0.3fast`** (Qwen3.5 4B, 8 GB Macs): about twice as fast per token, a lower pass rate on hard problems.
-- **`flycoder0.3pro`** (Qwen3.8 27B, 32 GB Macs or more): the latest Qwen generation with its own FlyCoder recipe, for hard bugs, algorithms and coding agents (section 6.5).
+- **`flycoder0.3pro`** (Qwen3.8 27B, 32 GB Macs or more): the latest Qwen generation, set up for hard bugs, algorithms and coding agents (section 6.5).
 
 Every Modelfile declares the Ollama version it needs (`REQUIRES`): an older Ollama names the version to install instead of failing to load the model.
 
@@ -280,14 +280,14 @@ Replace it for a session with `/set system`, or with a `system` message in the A
 
 ### 6.5 What makes `flycoder0.3pro` different
 
-`flycoder0.3pro` is not Qwen3.8 with a new name. Its Modelfile gives it:
+`flycoder0.3pro` is not Qwen3.8 with a new name. On top of the base, its Modelfile sets:
 
-- **Its own workflow** in the system prompt, in six steps: contract (exact names, inputs, errors; one question only if an ambiguity changes the code), plan (at most five lines for multi-file work), code, tests that prove the code, a check of the tricky cases before answering, and a one-line report on how to run the tests.
-- **Agent rules**: read files before editing them, change as little as the task needs, run the project's tests and report their real output, never run a destructive command without the user's agreement.
-- **A worked example** (`MESSAGE`): one request and the expected answer (assumption, code, pytest tests, run command), so the model sees the format instead of only reading about it. `npm test` runs the example's code against its own test cases.
-- **Multi-token prediction** (`draft_num_predict 4`) and 64K tokens of context.
+- **FlyCoder's system prompt** (section 6.4), the one that scored best in the prompt comparison of section 7, with the base model named.
+- **Rules for coding agents**: read files before editing them, change as little as the task needs, run the project's tests and report their real output, never claim a result it did not see, never run a destructive command without the user's agreement.
+- **Qwen's coding sampling** (temperature 0.6 instead of the library's 1.0), **64K tokens of context** (instead of Ollama's 4,096 default under 24 GB) and **multi-token prediction** (`draft_num_predict 4`).
+- **`REQUIRES 0.32.12`**: an older Ollama names the version to install.
 
-The weights are Qwen3.8's: FlyCoder does not retrain them. The recipe was measured on the 9B base, because the test server cannot hold the 27B (section 7).
+A first pro recipe had a six-step workflow (contract, plan, code, tests, check, report) and a worked example conversation. It was compared on the 9B base, since the test server cannot hold the 27B: it solved 6 of the 20 bench problems, against 9 for FlyCoder's prompt. It was dropped. FlyCoder does not retrain the weights.
 
 ### 6.6 Ollama server settings
 
@@ -323,7 +323,32 @@ npm run bench -- --models flycoder0.3,flycoder0.3fast
 
 The bench runs the code written by the models on your machine, in a temporary folder, with a time limit. On macOS, `sandbox-exec` blocks network access and writes outside that folder.
 
-The 0.3 reference run (`docs/bench/cpu-nothink-0.3.json`) is being recorded. The 0.2 run stays in [docs/bench/cpu-nothink.json](docs/bench/cpu-nothink.json).
+Reference results, recorded on a 4-core Linux server **without a GPU** (Xeon at 2.8 GHz, GGUF Q4_K_M weights, thinking off, one attempt per problem, at most 2,048 tokens per answer). On a Mac, the absolute speeds are much higher; only the comparisons between profiles matter.
+
+| Profile | Base | Passed | Generation | Tokens per answer | Time per problem |
+|---|---|---|---|---|---|
+| `flycoder0.3` | Qwen3.5 9B | 9/20 | 3.9 tok/s | 900 | 254 s |
+| `flycoder0.3fast` | Qwen3.5 4B | 5/20 | 6.1 tok/s | 689 | 126 s |
+| 0.2 beta, for comparison | Gemma 4 12B | 14/20 | 3.4 tok/s | 739 | 235 s |
+| 0.2 beta fast, for comparison | Qwen3.5 4B | 5/20 | 6.5 tok/s | 537 | 89 s |
+
+Results: [docs/bench/cpu-nothink-0.3.json](docs/bench/cpu-nothink-0.3.json); the 0.2 rows come from [docs/bench/cpu-nothink.json](docs/bench/cpu-nothink.json), measured on a slower Xeon (2.1 GHz), so their speeds compare only roughly.
+
+What these numbers say:
+
+- **Gemma 4 12B solved more problems** (14 against 9). It was replaced because it did not run on every 16 GB Mac; `flycoder0.3` runs on any Ollama 0.30 or later and leaves room for a 64K context.
+- **3 of the 9B's 11 failures are cut-off answers**: with thinking off, the model reasons in code comments until it hits the 2,048-token cap. With thinking on (the default of `ollama run`), that reasoning goes to the thinking channel instead. The other 8 failures are wrong logic.
+- **`flycoder0.3fast` matches 0.2's fast variant** (5/20), with a context twice as large.
+
+Prompt comparison on the same 9B base and settings, recorded in [docs/bench/cpu-nothink-0.3-prompts.json](docs/bench/cpu-nothink-0.3-prompts.json):
+
+| System prompt | Passed | Cut-off answers | Tokens per answer |
+|---|---|---|---|
+| FlyCoder 0.3 (shipped) | 9/20 | 3 | 900 |
+| The same, without the final-check line | 8/20 | 3 | 890 |
+| First pro recipe: six-step workflow and a worked example | 6/20 | 2 | 772 |
+
+With one attempt per problem, a gap of one problem is noise; the gap to the first pro recipe is why it was dropped.
 
 ## 8. Publishing on ollama.com
 
@@ -395,7 +420,7 @@ The tests check:
 - that the Modelfiles start from the right bases, with the expected settings and an identical system prompt apart from the base name;
 - that the installer, the publishing script and the workflow agree with the Modelfiles and the version;
 - that each ollama.com page shows the right name, size, memory and context;
-- that every Modelfile declares its minimum Ollama version, and that the code of the pro example passes its own test cases;
+- that every Modelfile declares its minimum Ollama version, and that `flycoder0.3pro` keeps every shared rule plus the agent rules;
 - FlyBrain's rules, the fallback to the large model when the micro-model fails, conversation memory, the scheduler, and the server against a fake Ollama.
 
 CI runs them on Linux and on macOS, where the reference solutions run inside the sandbox.
@@ -413,8 +438,8 @@ Add an object to `bench/problems.mjs` with `id` (`py-` or `js-` prefix), `langua
 - The weights are not retrained: FlyCoder is a profile of existing models.
 - The bench has 20 problems and one attempt per problem: it separates profiles without replacing a public benchmark.
 - The reference measurements come from a Linux server without a GPU; speed on a Mac has not been measured for this version.
-- `flycoder0.3pro` was not run by the bench: its 27B base needs more memory than the test server has. Its recipe was measured on the 9B base instead.
-- The pro example conversation is sent with every conversation: about 600 tokens of the 64K context.
+- `flycoder0.3pro` was not run by the bench: its 27B base needs more memory than the test server has. Its prompt choices were measured on the 9B base instead.
+- The bench runs with thinking off and one attempt per problem; quality with thinking on (the default) is not measured yet.
 - FlyBrain does not lower the memory peak of hard requests, and switching experts costs a few seconds.
 
 ## 12. Version history
