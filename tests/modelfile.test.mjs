@@ -99,6 +99,23 @@ test('the publish workflow runs the publisher and updates every page', () => {
   for (const secret of ['OLLAMA_KEY', 'OLLAMA_API_KEY']) assert.ok(workflow.includes(`secrets.${secret}`), `workflow uses ${secret}`);
 });
 
+test('every published model has a Hugging Face model card and is mirrored by the Hugging Face publisher', () => {
+  const publish = read('scripts/publish-hf.sh'), workflow = read('.github/workflows/publish-huggingface.yml');
+  assert.match(publish, /^VERSION=0\.3$/m);
+  assert.match(publish, /^OLLAMA_USER=Tromset$/m);
+  for (const v of VARIANTS.filter(v => v.page)) {
+    const card = read(`docs/huggingface/${v.name}.md`), base = v.base.split(' by ')[0];
+    assert.match(publish, new RegExp(`^(MODELS=')?${v.name.replace('.', '\\.')} Q4_K_M'?$`, 'm'), `publish-hf.sh mirrors ${v.name}`);
+    assert.match(card, /^---\nlicense: apache-2\.0\n/, `${v.name} card declares the base's license`);
+    assert.ok(card.includes(`base_model: Qwen/${base.replace(' ', '-')}\n`), `${v.name} card links ${base}`);
+    assert.ok(card.includes(`ollama run hf.co/@HF_NAMESPACE@/${v.name}\n`), `${v.name} card shows how to run it`);
+    for (const fact of [v.size, v.mac, v.ctx, base, `-c ${v.params.num_ctx} `]) assert.ok(card.includes(fact), `${v.name} card mentions ${fact}`);
+  }
+  assert.match(workflow, /workflows: \[publish-ollama\]/);
+  assert.ok(workflow.includes('secrets.HF_TOKEN'), 'workflow uses HF_TOKEN');
+  assert.match(workflow, /sh scripts\/publish-hf\.sh/);
+});
+
 test('shell scripts parse with POSIX sh', () => {
-  for (const file of ['install.sh', 'scripts/publish.sh', 'scripts/update-ollama-pages.sh']) execFileSync('sh', ['-n', new URL(`../${file}`, import.meta.url).pathname]);
+  for (const file of ['install.sh', 'scripts/publish.sh', 'scripts/publish-hf.sh', 'scripts/update-ollama-pages.sh']) execFileSync('sh', ['-n', new URL(`../${file}`, import.meta.url).pathname]);
 });

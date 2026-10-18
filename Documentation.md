@@ -370,7 +370,30 @@ Updating a page uses the same request as the page's Edit button; Ollama does not
 
 By hand, from any machine signed in to the account: `sh scripts/publish.sh` (all models) or `sh scripts/publish.sh Tromset flycoder0.3fast` (one model), then `OLLAMA_API_KEY=... sh scripts/update-ollama-pages.sh`.
 
-For a new version, update the version in `package.json`, `install.sh`, `scripts/publish.sh`, the system prompt of the Modelfiles and the pages. `npm test` checks that they agree.
+For a new version, update the version in `package.json`, `install.sh`, `scripts/publish.sh`, `scripts/publish-hf.sh`, the system prompt of the Modelfiles and the pages. `npm test` checks that they agree.
+
+### 8.1 Publishing on Hugging Face
+
+After each successful run of publish-ollama, the [publish-huggingface](.github/workflows/publish-huggingface.yml) workflow mirrors `flycoder0.3`, `flycoder0.3fast` and `flycoder0.3pro` on Hugging Face. It also runs when `docs/huggingface/` changes, and by hand from the Actions tab. For each model, `scripts/publish-hf.sh` downloads the published layers of `Tromset/<model>` from the ollama.com registry, checks their SHA-256, and uploads to `<namespace>/<model>`:
+
+| File | Content |
+|---|---|
+| `<model>-Q4_K_M.gguf` | the weights, byte for byte the ollama.com file |
+| `mmproj-<model>.gguf` | the vision projector |
+| `system`, `params` | the system prompt and the sampling settings, which Ollama applies to `ollama run hf.co/<namespace>/<model>` |
+| `LICENSE` | the base's Apache 2.0 license |
+| `README.md` | the model card, from `docs/huggingface/<model>.md` (`@HF_NAMESPACE@` is replaced by the namespace) |
+
+The template layer is not copied: on ollama.com it is a placeholder and Ollama formats Qwen with its built-in renderer. From Hugging Face, Ollama and llama.cpp (`--jinja`) use the chat template inside the GGUF; for tool calling and thinking in Ollama, `Tromset/<model>` stays the reference build.
+
+One-time setup, in Settings > Secrets and variables > Actions:
+
+| Name | Kind | Value |
+|---|---|---|
+| `HF_TOKEN` | secret | a token with write access, created at https://huggingface.co/settings/tokens |
+| `HF_NAMESPACE` | variable, optional | the user or organization to publish under; by default, the owner of the token |
+
+By hand: `pip install huggingface_hub`, then `HF_TOKEN=... sh scripts/publish-hf.sh` (all models, under the token's owner) or `HF_TOKEN=... sh scripts/publish-hf.sh <namespace> flycoder0.3fast`. The largest model needs 18 GB of free disk.
 
 ## 9. Troubleshooting
 
@@ -386,6 +409,7 @@ For a new version, update the version in `package.json`, `install.sh`, `scripts/
 | Endless repetition | temperature changed to a value that is too low | go back to the Modelfile's settings |
 | `npm run bench`: "Reference solution failed" | `python3` or `node` missing, or sandbox refused | `xcode-select --install`, Node 22, or `--no-sandbox` |
 | The publish workflow fails at "Check the secrets" | `OLLAMA_KEY` is missing | add it (section 8) |
+| publish-huggingface fails at "Check the secret" | `HF_TOKEN` is missing | add it (section 8.1) |
 
 ## 10. Development
 
@@ -400,11 +424,12 @@ For a new version, update the version in `package.json`, `install.sh`, `scripts/
 | `install.sh` | one-command installer |
 | `scripts/publish.sh`, `scripts/update-ollama-pages.sh` | publishing models and pages on ollama.com |
 | `docs/ollama/` | the ollama.com pages, one file per model |
+| `docs/huggingface/`, `scripts/publish-hf.sh` | the Hugging Face model cards and their publisher |
 | `bench/bench.mjs`, `bench/problems.mjs` | benchmark and problems |
 | `bench/baselines/` | 0.1 profile, for comparison |
 | `docs/bench/` | reference results |
 | `tests/` | tests for the bench, the Modelfiles, the scripts, the pages and FlyBrain |
-| `.github/workflows/test.yml`, `.github/workflows/publish-ollama.yml` | CI on Linux and macOS, automatic publishing |
+| `.github/workflows/test.yml`, `.github/workflows/publish-ollama.yml`, `.github/workflows/publish-huggingface.yml` | CI on Linux and macOS, automatic publishing |
 | `training/`, `scripts/build_language_dataset.js`, `server/fly-language.js` | former FlyBrain voice pipeline, independent of FlyCoder; the voice speaks French by design |
 
 ### 10.2 Tests
