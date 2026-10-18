@@ -1,0 +1,76 @@
+name: publish-huggingface
+# After each successful publication on ollama.com, the same models are mirrored on Hugging Face:
+# weights, vision projector, system prompt, sampling settings and the model card from docs/huggingface/.
+# Needs one repository secret (Settings > Secrets and variables > Actions):
+#   HF_TOKEN      a Hugging Face token with write access (https://huggingface.co/settings/tokens)
+# and optionally one repository variable:
+#   HF_NAMESPACE  the Hugging Face user or organization to publish under (default: the owner of HF_TOKEN)
+on:
+  workflow_run:
+    workflows: [publish-ollama]
+    types: [completed]
+    branches: [main]
+  push:
+    branches: [main]
+    paths:
+      - 'docs/huggingface/**'
+      - 'scripts/publish-hf.sh'
+      - '.github/workflows/publish-huggingface.yml'
+  workflow_dispatch:
+    inputs:
+      models:
+        description: 'Models to publish (space-separated names, or "all")'
+        default: all
+concurrency:
+  group: publish-huggingface
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: github.repository == 'Tromset/flycoder' && (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      HF_NAMESPACE: ${{ vars.HF_NAMESPACE }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the secret
+        id: secret
+        run: |
+          # Without a token the mirror is skipped, not failed: ollama.com stays the reference.
+          if [ -n "$HF_TOKEN" ]; then echo "ready=true" >> "$GITHUB_OUTPUT"; else
+            echo "::warning::HF_TOKEN is not set: nothing was published on Hugging Face. Add a write token from https://huggingface.co/settings/tokens."
+            echo "Skipped: add the HF_TOKEN secret to publish on Hugging Face." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Free disk space for the largest model
+        if: steps.secret.outputs.ready == 'true'
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          sudo docker image prune --all --force >/dev/null
+          df -h /
+
+      - uses: actions/setup-node@v4
+        if: steps.secret.outputs.ready == 'true'
+        with:
+          node-version: 22
+
+      - uses: actions/setup-python@v5
+        if: steps.secret.outputs.ready == 'true'
+        with:
+          python-version: '3.12'
+
+      - name: Install huggingface_hub
+        if: steps.secret.outputs.ready == 'true'
+        run: python3 -m pip install --quiet 'huggingface_hub>=0.32,<2'
+
+      - name: Publish on Hugging Face
+        if: steps.secret.outputs.ready == 'true'
+        env:
+          REQUESTED: ${{ inputs.models }}
+        run: |
+          models=${REQUESTED:-all}
+          # models is a space-separated list of names: split it on purpose.
+          # shellcheck disable=SC2086
+          if [ "$models" = all ]; then sh scripts/publish-hf.sh "$HF_NAMESPACE"; else sh scripts/publish-hf.sh "$HF_NAMESPACE" $models; fi
