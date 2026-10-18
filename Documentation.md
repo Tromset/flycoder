@@ -409,7 +409,7 @@ By hand: `pip install huggingface_hub`, then `HF_TOKEN=... sh scripts/publish-hf
 | Endless repetition | temperature changed to a value that is too low | go back to the Modelfile's settings |
 | `npm run bench`: "Reference solution failed" | `python3` or `node` missing, or sandbox refused | `xcode-select --install`, Node 22, or `--no-sandbox` |
 | The publish workflow fails at "Check the secrets" | `OLLAMA_KEY` is missing | add it (section 8) |
-| publish-huggingface fails at "Check the secret" | `HF_TOKEN` is missing | add it (section 8.1) |
+| publish-huggingface warns "HF_TOKEN is not set" and publishes nothing | `HF_TOKEN` is missing | add it (section 8.1) |
 
 ## 10. Development
 
