@@ -352,23 +352,19 @@ With one attempt per problem, a gap of one problem is noise; the gap to the firs
 
 ## 8. Publishing on ollama.com
 
-Publishing is automatic. On every change to `main` that touches a Modelfile, a page in `docs/ollama/` or the publishing scripts, the [publish-ollama](.github/workflows/publish-ollama.yml) workflow:
+Publishing is automatic. On every change to `main` that touches a Modelfile or the publishing script, the [publish-ollama](.github/workflows/publish-ollama.yml) workflow rebuilds the changed models from their Modelfiles and pushes them as `Tromset/flycoder0.3`, `Tromset/flycoder0.3fast`, `Tromset/flycoder0.3pro`, `Tromset/flycoder0.3:lite` and `Tromset/flycoder0.3:router`.
 
-1. rebuilds the changed models from their Modelfiles and pushes them as `Tromset/flycoder0.3`, `Tromset/flycoder0.3fast`, `Tromset/flycoder0.3pro`, `Tromset/flycoder0.3:lite` and `Tromset/flycoder0.3:router`;
-2. updates each model page on ollama.com from `docs/ollama/<model>.md`.
-
-It can also be started by hand from the Actions tab (Run workflow), with a list of models or `none` to update only the pages.
+It can also be started by hand from the Actions tab (Run workflow), with a list of models or `all`.
 
 One-time setup, in the repository's Settings > Secrets and variables > Actions:
 
 | Secret | Value |
 |---|---|
 | `OLLAMA_KEY` | the private key `~/.ollama/id_ed25519` of a machine linked to the Tromset account (`ollama signin` on that machine first) |
-| `OLLAMA_API_KEY` | an API key created at https://ollama.com/settings/keys, used to update the pages |
 
-Updating a page uses the same request as the page's Edit button; Ollama does not document it. If it is refused, the workflow shows a warning and the page can still be pasted by hand.
+The model pages are not published automatically: ollama.com accepts page edits only from a signed-in browser and refuses API keys. After changing `docs/ollama/<model>.md`, open the model's page on ollama.com, click Edit and paste the file.
 
-By hand, from any machine signed in to the account: `sh scripts/publish.sh` (all models) or `sh scripts/publish.sh Tromset flycoder0.3fast` (one model), then `OLLAMA_API_KEY=... sh scripts/update-ollama-pages.sh`.
+By hand, from any machine signed in to the account: `sh scripts/publish.sh` (all models) or `sh scripts/publish.sh Tromset flycoder0.3fast` (one model).
 
 For a new version, update the version in `package.json`, `install.sh`, `scripts/publish.sh`, `scripts/publish-hf.sh`, the system prompt of the Modelfiles and the pages. `npm test` checks that they agree.
 
@@ -408,7 +404,7 @@ By hand: `pip install huggingface_hub`, then `HF_TOKEN=... sh scripts/publish-hf
 | Thinking takes too long | simple question handled in thinking mode | `--think=false` or `/set nothink` |
 | Endless repetition | temperature changed to a value that is too low | go back to the Modelfile's settings |
 | `npm run bench`: "Reference solution failed" | `python3` or `node` missing, or sandbox refused | `xcode-select --install`, Node 22, or `--no-sandbox` |
-| The publish workflow fails at "Check the secrets" | `OLLAMA_KEY` is missing | add it (section 8) |
+| The publish workflow fails at "Check the secret" | `OLLAMA_KEY` is missing | add it (section 8) |
 | publish-huggingface warns "HF_TOKEN is not set" and publishes nothing | `HF_TOKEN` is missing | add it (section 8.1) |
 
 ## 10. Development
@@ -422,8 +418,8 @@ By hand: `pip install huggingface_hub`, then `HF_TOKEN=... sh scripts/publish-hf
 | `brain/flybrain.mjs`, `brain/router.mjs` | FlyBrain server and routing rules |
 | `brain/eval-router.mjs`, `tests/fixtures/route-prompts.json` | router accuracy measurement |
 | `install.sh` | one-command installer |
-| `scripts/publish.sh`, `scripts/update-ollama-pages.sh` | publishing models and pages on ollama.com |
-| `docs/ollama/` | the ollama.com pages, one file per model |
+| `scripts/publish.sh` | publishing the models on ollama.com |
+| `docs/ollama/` | the ollama.com pages, one file per model, pasted by hand |
 | `docs/huggingface/`, `scripts/publish-hf.sh` | the Hugging Face model cards and their publisher |
 | `bench/bench.mjs`, `bench/problems.mjs` | benchmark and problems |
 | `bench/baselines/` | 0.1 profile, for comparison |

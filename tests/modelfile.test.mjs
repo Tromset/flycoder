@@ -91,12 +91,11 @@ test('every published model has a short, up-to-date Ollama page', () => {
   }
 });
 
-test('the publish workflow runs the publisher and updates every page', () => {
+test('the publish workflow runs the publisher with the Tromset key', () => {
   const workflow = read('.github/workflows/publish-ollama.yml');
   assert.match(workflow, /branches: \[main\]/);
   assert.match(workflow, /sh scripts\/publish\.sh Tromset/);
-  for (const v of VARIANTS.filter(v => v.page)) assert.ok(workflow.includes(v.page.split('/').pop()) || workflow.includes('docs/ollama/'), `workflow uploads ${v.page}`);
-  for (const secret of ['OLLAMA_KEY', 'OLLAMA_API_KEY']) assert.ok(workflow.includes(`secrets.${secret}`), `workflow uses ${secret}`);
+  assert.ok(workflow.includes('secrets.OLLAMA_KEY'), 'workflow uses OLLAMA_KEY');
 });
 
 test('every published model has a Hugging Face model card and is mirrored by the Hugging Face publisher', () => {
@@ -117,5 +116,5 @@ test('every published model has a Hugging Face model card and is mirrored by the
 });
 
 test('shell scripts parse with POSIX sh', () => {
-  for (const file of ['install.sh', 'scripts/publish.sh', 'scripts/publish-hf.sh', 'scripts/update-ollama-pages.sh']) execFileSync('sh', ['-n', new URL(`../${file}`, import.meta.url).pathname]);
+  for (const file of ['install.sh', 'scripts/publish.sh', 'scripts/publish-hf.sh']) execFileSync('sh', ['-n', new URL(`../${file}`, import.meta.url).pathname]);
 });
