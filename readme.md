@@ -12,13 +12,15 @@ You need Ollama 0.30 or later (0.32.12 for `pro`). Full documentation: [Document
 
 ## The three models
 
-| Model | Base | Weights | Mac | Context |
-|---|---|---|---|---|
-| [`Tromset/flycoder0.3`](https://ollama.com/Tromset/flycoder0.3) | Qwen3.5 9B | 6.6 GB | 16 GB | 65,536 tokens |
-| [`Tromset/flycoder0.3fast`](https://ollama.com/Tromset/flycoder0.3fast) | Qwen3.5 4B | 3.3 GB | 8 GB | 32,768 tokens |
-| [`Tromset/flycoder0.3pro`](https://ollama.com/Tromset/flycoder0.3pro) | Qwen3.8 27B | 18 GB | 32 GB or more | 65,536 tokens |
+| Model | Hugging Face | Base | Weights | Mac | Context |
+|---|---|---|---|---|---|
+| [`Tromset/flycoder0.3`](https://ollama.com/Tromset/flycoder0.3) | [Tromset/flycoder0.3](https://huggingface.co/Tromset/flycoder0.3) | Qwen3.5 9B | 6.6 GB | 16 GB | 65,536 tokens |
+| [`Tromset/flycoder0.3fast`](https://ollama.com/Tromset/flycoder0.3fast) | [Tromset/flycoder0.3fast](https://huggingface.co/Tromset/flycoder0.3fast) | Qwen3.5 4B | 3.3 GB | 8 GB | 32,768 tokens |
+| [`Tromset/flycoder0.3pro`](https://ollama.com/Tromset/flycoder0.3pro) | [Tromset/flycoder0.3pro](https://huggingface.co/Tromset/flycoder0.3pro) | Qwen3.8 27B | 18 GB | 32 GB or more | 65,536 tokens |
 
 All three are portable GGUF builds: they run on Apple Silicon and Intel Macs, Linux and Windows, with tool calling, thinking and images. The bases are licensed under Apache 2.0.
+
+The same GGUF files are on Hugging Face, for llama.cpp, LM Studio or Ollama: `ollama run hf.co/Tromset/flycoder0.3`, or `llama-server -hf Tromset/flycoder0.3 --jinja`. For tool calling and thinking in Ollama, the ollama.com names above are the reference.
 
 What FlyCoder sets up on top of the base:
 
@@ -63,7 +65,7 @@ Details: [Documentation.md, section 5.5](Documentation.md#55-flybrain-the-router
 
 Every change to `main` that touches a Modelfile or a page in `docs/ollama/` is published on ollama.com by the [publish-ollama](.github/workflows/publish-ollama.yml) workflow: models first, then their pages. It needs two repository secrets, `OLLAMA_KEY` and `OLLAMA_API_KEY` ([Documentation.md, section 8](Documentation.md#8-publishing-on-ollamacom)).
 
-Each publication is then mirrored on Hugging Face by the [publish-huggingface](.github/workflows/publish-huggingface.yml) workflow: the same GGUF weights, vision projector, system prompt and sampling settings, with a model card from `docs/huggingface/`, runnable with `ollama run hf.co/<namespace>/flycoder0.3` or llama.cpp. It needs the `HF_TOKEN` secret ([Documentation.md, section 8.1](Documentation.md#81-publishing-on-hugging-face)).
+Each publication is then mirrored on Hugging Face by the [publish-huggingface](.github/workflows/publish-huggingface.yml) workflow: the same GGUF weights, vision projector, system prompt and sampling settings, with a model card from `docs/huggingface/`, under [huggingface.co/Tromset](https://huggingface.co/Tromset). It needs the `HF_TOKEN` secret ([Documentation.md, section 8.1](Documentation.md#81-publishing-on-hugging-face)).
 
 ## Repository contents
 
