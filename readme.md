@@ -63,7 +63,7 @@ Details: [Documentation.md, section 5.5](Documentation.md#55-flybrain-the-router
 
 ## Publishing
 
-Every change to `main` that touches a Modelfile or a page in `docs/ollama/` is published on ollama.com by the [publish-ollama](.github/workflows/publish-ollama.yml) workflow: models first, then their pages. It needs two repository secrets, `OLLAMA_KEY` and `OLLAMA_API_KEY` ([Documentation.md, section 8](Documentation.md#8-publishing-on-ollamacom)).
+Every change to `main` that touches a Modelfile is published on ollama.com by the [publish-ollama](.github/workflows/publish-ollama.yml) workflow. It needs the repository secret `OLLAMA_KEY` ([Documentation.md, section 8](Documentation.md#8-publishing-on-ollamacom)). The model pages are pasted by hand from `docs/ollama/`.
 
 Each publication is then mirrored on Hugging Face by the [publish-huggingface](.github/workflows/publish-huggingface.yml) workflow: the same GGUF weights, vision projector, system prompt and sampling settings, with a model card from `docs/huggingface/`, under [huggingface.co/Tromset](https://huggingface.co/Tromset). It needs the `HF_TOKEN` secret ([Documentation.md, section 8.1](Documentation.md#81-publishing-on-hugging-face)).
 
@@ -72,7 +72,7 @@ Each publication is then mirrored on Hugging Face by the [publish-huggingface](.
 - `Modelfile`, `Modelfile.fast`, `Modelfile.pro`: the three variants. `Modelfile.lite`, `Modelfile.router`: FlyBrain's experts.
 - `docs/ollama/`: the ollama.com page of each model. `docs/huggingface/`: the Hugging Face model card of each model.
 - `brain/`: the FlyBrain server and its routing rules.
-- `install.sh`: one-command install. `scripts/publish.sh`, `scripts/update-ollama-pages.sh`, `scripts/publish-hf.sh`: publishing.
+- `install.sh`: one-command install. `scripts/publish.sh`, `scripts/publish-hf.sh`: publishing.
 - `bench/`: quality and speed benchmark. `tests/`: `npm test`.
 - `training/`, `scripts/build_language_dataset.js`, `server/fly-language.js`: the former FlyBrain voice pipeline, independent of FlyCoder.
 
