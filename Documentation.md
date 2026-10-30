@@ -389,7 +389,7 @@ One-time setup, in Settings > Secrets and variables > Actions:
 | `HF_TOKEN` | secret | a token with write access, created at https://huggingface.co/settings/tokens |
 | `HF_NAMESPACE` | variable, optional | the user or organization to publish under; by default, the owner of the token |
 
-By hand: `pip install huggingface_hub`, then `HF_TOKEN=... sh scripts/publish-hf.sh` (all models, under the token's owner) or `HF_TOKEN=... sh scripts/publish-hf.sh <namespace> flycoder0.3fast`. The largest model needs 18 GB of free disk.
+By hand: `pip install huggingface_hub`, then `HF_TOKEN=... sh scripts/publish-hf.sh` (all models, under the token's owner) or `HF_TOKEN=... sh scripts/publish-hf.sh <namespace> flycoder0.3fast`. GGUF files already on Hugging Face with the same SHA-256 are skipped, so only changed weights are downloaded; a new pro model needs 18 GB of free disk.
 
 ## 9. Troubleshooting
 

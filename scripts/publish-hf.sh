@@ -6,7 +6,8 @@
 # the GGUF weights, the vision projector, the system prompt, the sampling settings and the base's license,
 # with docs/huggingface/<name>.md as the model card. Ollama, llama.cpp and LM Studio can run it from there.
 # Prerequisites: curl, node, python3 with huggingface_hub (pip install huggingface_hub), a token with write access
-# (https://huggingface.co/settings/tokens). Downloads one model at a time: the largest needs 18 GB of free disk.
+# (https://huggingface.co/settings/tokens). Downloads one model at a time, and only the GGUF files that changed:
+# a new pro model needs 18 GB of free disk.
 # GitHub Actions runs this script after each publication on ollama.com (.github/workflows/publish-huggingface.yml).
 set -eu
 
@@ -50,6 +51,12 @@ layer() {
     const l=m.layers.find(l=>l.mediaType==="application/vnd.ollama.image."+process.argv[2]); if(l) console.log(l.digest)' "$1" "$2"
 }
 
+# published <file> <digest>: true when the repository already holds <file> with that SHA-256 (from tree.json).
+published() {
+  node -e 'const t=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8"));
+    process.exit(t.some(f=>f.path===process.argv[2]&&f.lfs&&"sha256:"+f.lfs.oid===process.argv[3])?0:1)' "$work/tree.json" "$1" "$2"
+}
+
 # fetch <name> <digest> <file>: downloads a blob of Tromset/<name> and checks its digest.
 fetch() {
   curl -fsSL --retry 4 --retry-all-errors -o "$3" "$REGISTRY/$OLLAMA_USER/$1/blobs/$2"
@@ -67,12 +74,23 @@ echo "$MODELS" | while read -r name quant; do
 
   curl -fsS -H 'Accept: application/vnd.docker.distribution.manifest.v2+json' \
     -o "$work/manifest.json" "$REGISTRY/$OLLAMA_USER/$name/manifests/latest" || die "Tromset/$name is not on ollama.com."
+  # The GGUF files are skipped when the repository already has them: same SHA-256 as the ollama.com layer.
+  # Downloading the 17 GB pro weights again on every run fills the runner's disk.
+  curl -fsS -H "Authorization: Bearer $HF_TOKEN" -o "$work/tree.json" "https://huggingface.co/api/models/$repo/tree/main" \
+    || echo '[]' > "$work/tree.json"
   model=$(layer "$work/manifest.json" model)
   [ -n "$model" ] || die "Tromset/$name has no weights."
-  fetch "$name" "$model" "$dir/$name-$quant.gguf"
-  [ "$(head -c 4 "$dir/$name-$quant.gguf")" = GGUF ] || die "the weights of Tromset/$name are not a GGUF file."
+  if published "$name-$quant.gguf" "$model"; then
+    echo "$name-$quant.gguf is up to date."
+  else
+    fetch "$name" "$model" "$dir/$name-$quant.gguf"
+    [ "$(head -c 4 "$dir/$name-$quant.gguf")" = GGUF ] || die "the weights of Tromset/$name are not a GGUF file."
+  fi
   projector=$(layer "$work/manifest.json" projector)
-  [ -z "$projector" ] || fetch "$name" "$projector" "$dir/mmproj-$name.gguf"
+  if [ -n "$projector" ]; then
+    if published "mmproj-$name.gguf" "$projector"; then echo "mmproj-$name.gguf is up to date."
+    else fetch "$name" "$projector" "$dir/mmproj-$name.gguf"; fi
+  fi
   # Ollama reads `system` and `params` from the repository when it runs hf.co/<repo>. The template layer is not
   # copied: it is a placeholder, Ollama formats Qwen3.5 with its built-in renderer and llama.cpp with the GGUF's template.
   for kind in system params license; do
