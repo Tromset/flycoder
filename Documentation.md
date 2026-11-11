@@ -80,8 +80,24 @@ Options, placed after `sh -s --` when the script is read from `curl`:
 | `--all` | installs all three; `flycoder` points to `flycoder0.3` |
 | `--mlx` | uses Ollama's MLX engine on Apple Silicon (faster, needs Ollama 0.31) instead of the portable GGUF weights |
 | `--no-brain` | skips the FlyBrain experts (`flycoder0.3:router`, `flycoder0.3:lite`) |
+| `--update` | rebuilds the variants already installed, see below |
 
 From a copy of the repository, `sh install.sh` uses the local Modelfiles. The `FLYCODER_REF` variable picks another GitHub branch or tag to download them from.
+
+**Updating.** The installer writes `~/.flycoder/update.sh`, so an update is one command:
+
+```sh
+sh ~/.flycoder/update.sh
+```
+
+It downloads the latest installer and runs it with `--update`, which:
+
+1. finds the variants present in `ollama list` and stops if there is none;
+2. pulls their base models again and recreates each variant from the latest Modelfile;
+3. points `flycoder` back at the variant it was a copy of;
+4. where FlyBrain is installed (`flycoder0.3:router` is present), rebuilds its experts and replaces the two server files.
+
+Nothing new is installed: a variant you do not have is not added. `--update` cannot be combined with `--fast`, `--pro` or `--all`. An install made with `--mlx` is remembered in `update.sh`. An install older than this option has no `update.sh` yet: run `curl -fsSL https://raw.githubusercontent.com/Tromset/flycoder/main/install.sh | sh -s -- --update` once (with `--mlx` if you used it).
 
 ### 3.3 By hand
 
