@@ -38,6 +38,14 @@ ollama run flycoder
 
 The installer picks the variant from your memory and names it `flycoder`. Options after `sh -s --`: `--fast`, `--pro`, `--all`, `--mlx` (Ollama's MLX engine on Apple Silicon), `--no-brain`.
 
+To update later, one command rebuilds the variants you have from the latest Modelfiles and refreshes FlyBrain:
+
+```sh
+sh ~/.flycoder/update.sh
+```
+
+The installer writes that file. If you installed before it existed, run this once: `curl -fsSL https://raw.githubusercontent.com/Tromset/flycoder/main/install.sh | sh -s -- --update` (add `--mlx` if you installed with it).
+
 ## Measured quality and speed
 
 20 coding problems with hidden tests (`bench/`), on a 4-core Linux server without a GPU, thinking off, one attempt per problem:
